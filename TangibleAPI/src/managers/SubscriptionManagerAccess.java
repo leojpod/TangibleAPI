@@ -6,7 +6,7 @@ package managers;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import restful.streaming.StreamingSocket;
+import restful.streaming.StreamingThread;
 
 /**
  *
@@ -27,10 +27,10 @@ public enum SubscriptionManagerAccess {
 
   private class SubscriptionManagerImpl implements SubscriptionManager {
     
-    private Map<UUID, StreamingSocket> _subsSockets;
+    private Map<UUID, StreamingThread> _subsSockets;
     
     private SubscriptionManagerImpl() {
-      _subsSockets = new HashMap<UUID, StreamingSocket>();
+      _subsSockets = new HashMap<UUID, StreamingThread>();
     }
 
     @Override
@@ -39,7 +39,7 @@ public enum SubscriptionManagerAccess {
     }
 
     @Override
-    public StreamingSocket getStreamingSocket(UUID appuuid) throws NoSuchSocket {
+    public StreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket {
       if(!existsStreaming(appuuid)){
         throw new NoSuchSocket(appuuid.toString());
       }
@@ -48,8 +48,8 @@ public enum SubscriptionManagerAccess {
     }
 
     @Override
-    public StreamingSocket createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket {
-      StreamingSocket newSocket = null;
+    public StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket {
+      StreamingThread newSocket = null;
       
       
       return newSocket;

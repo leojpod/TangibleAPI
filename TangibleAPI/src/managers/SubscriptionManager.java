@@ -4,7 +4,7 @@
 package managers;
 
 import java.util.UUID;
-import restful.streaming.StreamingSocket;
+import restful.streaming.StreamingThread;
 import restful.utils.ApplicationException;
 
 /**
@@ -38,8 +38,8 @@ public interface SubscriptionManager {
   }
   
   boolean existsStreaming(UUID appuuid);
-  StreamingSocket getStreamingSocket(UUID appuuid) throws NoSuchSocket;
-  StreamingSocket createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket;
+  StreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket;
+  StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket;
   
   void addEventSubscription(UUID appuuid, String device, String[] events);
   void removeEventSubscription(UUID appuuid, String device, String[] events);

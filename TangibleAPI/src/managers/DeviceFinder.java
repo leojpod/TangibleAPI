@@ -25,16 +25,16 @@ public interface DeviceFinder extends LoopingThread {
     }
     
     public String protocolVersion(){
-      return this.getProperty("discovery_protocol_version");
+      return super.getProperty("discovery_protocol_version");
     }
     public int port(){
-      return Integer.parseInt(this.getProperty("discovery_port"));
+      return Integer.parseInt(super.getProperty("discovery_port"));
     }
     public Behaviour behaviour(){
-      return Behaviour.valueOf(this.getProperty("discovery_behaviour"));
+      return Behaviour.valueOf(super.getProperty("discovery_behaviour"));
     }
     public int timeout(){
-      return Integer.parseInt(this.getProperty("discovery_timeout"));
+      return Integer.parseInt(super.getProperty("discovery_timeout"));
     }
 
     @Override
