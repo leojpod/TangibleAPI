@@ -24,6 +24,7 @@ public class StreamingThread extends Thread{
   public StreamingThread() throws IOException{
     _sock = new ServerSocket(0);
     _sock.setSoTimeout(5000);//TODO_LATER add this value in the properties!
+    
   }
   
   
