@@ -3,6 +3,7 @@
  */
 package tangible.protocols;
 
+import restful.streaming.StreamingThread;
 import tangible.devices.TangibleDevice;
 
 /**
@@ -17,4 +18,6 @@ public interface TangibleGatewayCommunicationProtocol<T extends TangibleDevice> 
   void showColor(int r, int g, int b, T[] devs);
   void showColor(int color, String[] ids);
   void showColor(int color, T[] devs);
+  void addAllEventsNotification(StreamingThread sTh, String[] devs);
+  void addAllEventsNotification(StreamingThread sTh, T[] devs);
 }

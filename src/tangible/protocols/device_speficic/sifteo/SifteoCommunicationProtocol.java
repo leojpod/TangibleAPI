@@ -3,6 +3,7 @@
  */
 package tangible.protocols.device_speficic.sifteo;
 
+import restful.streaming.StreamingThread;
 import tangible.devices.SifteoCubeDevice;
 import tangible.protocols.TangibleDeviceCommunicationProtocol;
 
@@ -40,6 +41,11 @@ public class SifteoCommunicationProtocol
     
     System.out.println("SifteoCommunicationProtocol: Show color -> _cubeId = "+_cubeId);
     _driverTalk.showColor(color, _id_in_array);
+  }
+
+  @Override
+  public void addAllEventsNotification(StreamingThread sTh) {
+    _driverTalk.addAllEventsNotification(sTh, _id_in_array);
   }
   
   

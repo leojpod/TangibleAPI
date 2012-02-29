@@ -26,18 +26,18 @@ public enum ReservationManagerAccess {
   private static class ReservationManagerImpl
       implements ReservationManager {
 
-    private Map<String, Set<TangibleDevice>> _reservations;
+    private Map<UUID, Set<TangibleDevice>> _reservations;
     private Map<String,TangibleDevice> _busyDevices;
     private DeviceFinder _devFinder = DeviceFinderAccess.getInstance();
 
     private ReservationManagerImpl() {
       //private constructor
-      _reservations = new HashMap<String, Set<TangibleDevice>>();
+      _reservations = new HashMap<UUID, Set<TangibleDevice>>();
       _busyDevices = new HashMap<String, TangibleDevice>();
     }
 
     @Override
-    public String reserveDeviceById(String device_id, String app_id)
+    public String reserveDeviceById(String device_id, UUID app_id)
         throws UnsuccessfulReservationException {
       if(!isDeviceAvailable(device_id) || app_id == null){
         throw new UnsuccessfulReservationException();
@@ -51,7 +51,7 @@ public enum ReservationManagerAccess {
       //</FOR DEBUG>
       return device_id;
     }
-    private void addNewReservation(TangibleDevice dev, String app_id){
+    private void addNewReservation(TangibleDevice dev, UUID app_id){
       if(!_reservations.containsKey(app_id)){
         //create the set
         _reservations.put(app_id, new HashSet<TangibleDevice>());
@@ -61,13 +61,13 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public String reserveDeviceByType(String type, String app_id)
+    public String reserveDeviceByType(String type, UUID app_id)
         throws UnsuccessfulReservationException {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<String> reservedByAnApp(String app_id)
+    public List<String> reservedByAnApp(UUID app_id)
         throws UnsuccessfulReservationException {
       throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -77,7 +77,7 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public void endReservation(String device_id, String app_id) {
+    public void endReservation(String device_id, UUID app_id) {
       if(!_busyDevices.containsKey(device_id) || //if the device is not busy
         _reservations.get(app_id) == null || //or if this application has no reservation
           !_reservations.get(app_id).contains(_busyDevices.get(device_id))){ //or if this device is not reserved by this application
@@ -91,7 +91,7 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public boolean isAReservation(String devID, String appUUID) {
+    public boolean isAReservation(String devID, UUID appUUID) {
       return _reservations.containsKey(appUUID) 
           && _reservations.get(appUUID).contains(_devFinder.getDevice(devID));
     }

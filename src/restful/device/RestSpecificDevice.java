@@ -3,6 +3,8 @@
  */
 package restful.device;
 
+import com.google.gson.JsonObject;
+import java.util.UUID;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -12,6 +14,9 @@ import managers.DeviceFinder;
 import managers.DeviceFinderAccess;
 import managers.ReservationManager;
 import managers.ReservationManagerAccess;
+import managers.SubscriptionManager;
+import managers.SubscriptionManagerAccess;
+import restful.streaming.StreamingThread;
 import restful.utils.ConditionalAccessResource;
 import restful.utils.UnauthorizedAccessException;
 import tangible.devices.TangibleDevice;
@@ -26,13 +31,13 @@ public class RestSpecificDevice extends ConditionalAccessResource {
 //public class RestSpecificDevice extends JSONRestResource {
   private DeviceFinder _finder = DeviceFinderAccess.getInstance();
   private ReservationManager _mgr = ReservationManagerAccess.getInstance();
-  
+  private SubscriptionManager _subs = SubscriptionManagerAccess.getInstance();
   
   public RestSpecificDevice(@PathParam("appuuid") String uuid,
       @PathParam("device_ID") String devID){
     super(uuid, new Condition[] {Condition.APP_REGISTERED});
     //System.out.println("the received uuid is : "+query_uuid);
-    if(!_mgr.isAReservation(devID, uuid))
+    if(!_mgr.isAReservation(devID, _appuuid))
     {
       throw new UnauthorizedAccessException("the device "+devID
           +" is not reseved by the application"+uuid);
@@ -42,26 +47,25 @@ public class RestSpecificDevice extends ConditionalAccessResource {
   @PUT @Path("/show_color")
   public Response showColor(
       @PathParam("device_ID") String devID,
-      @PathParam("appuuid") String appUUID,
+      //@PathParam("appuuid") String appUUID,
       @FormParam("r") Integer r_value,
       @FormParam("g") Integer g_value,
       @FormParam("b") Integer b_value,
       @FormParam("color") String color
       ){
     Integer color_value;
-    color_value = null;
     System.out.println("trying to change the cubes'color!");
     System.out.println("here are the variables: \n"
         + "\t device_ID "+devID+"\n"
         + "\t color "+color+"\n"
-        + "\t appuuid "+appUUID);
-    if(appUUID == null){
-      return this.createMissingCompulsoryParamMsg("appUUID");
-    }
+        + "\t appuuid "+_appuuid);
+//    if(appUUID == null){
+//      return this.createMissingCompulsoryParamMsg("appUUID");
+//    }
     //let's check that the device is reserved by the application
-    if(!_mgr.isAReservation(devID, appUUID)){
+    if(!_mgr.isAReservation(devID, _appuuid)){
       return this.createErrorMsg("the device is not reserved by "
-          + "the specified application!", "device: "+devID+" / app: "+appUUID);
+          + "the specified application!", "device: "+devID+" / app: "+_appuuid);
     }
     try{
       color_value = Integer.parseInt(color, 16);
@@ -109,14 +113,22 @@ public class RestSpecificDevice extends ConditionalAccessResource {
   
   @PUT @Path("/subscribe")
   public Response addSubscription(
+      @PathParam("device_ID") String devId
       //TODO_LATER add a filter here to register only some events
       ){
-    //check if there is already a streaming socket for this (appuuid,device) 
-    //if()
-    //get a free port
-    //create a streaming socket on it
+    //check if there is already a streaming socket for this appuuid
+    StreamingThread sTh = null;
+    
+    if(_subs.existsStreaming(_appuuid)){
+      sTh = _subs.getStreamingSocket(_appuuid);
+    }else{
+      sTh = _subs.createStreamingSocket(_appuuid);
+    }
     //setup the subscription
+    _subs.addEventsSubscription(_appuuid, devId);
     //send back the port
-    return null;
+    JsonObject obj = new JsonObject();
+    obj.addProperty("port", sTh.getPort());
+    return createJsonCtrlResponseMsg(obj, Response.Status.OK);
   }
 }

@@ -38,7 +38,7 @@ public class RestDevice extends ConditionalAccessResource {
       @PathParam("deviceId") String id,
       @PathParam("appuuid") String appUUID){
     try{
-      String reservation = _mgr.reserveDeviceById(id, appUUID);
+      String reservation = _mgr.reserveDeviceById(id, _appuuid);
       return createJsonCtrlResponseMsg(reservation, Status.OK);
     } catch (ReservationManager.UnsuccessfulReservationException ex){
       return createJsonCtrlResponseMsg(ex, Status.CONFLICT);
@@ -54,7 +54,7 @@ public class RestDevice extends ConditionalAccessResource {
       @PathParam("deviceId") String id,
       @PathParam("appuuid") String appUUID){
     try{
-      _mgr.endReservation(id, appUUID);
+      _mgr.endReservation(id, _appuuid);
       return Response.ok().build();
     }catch (ReservationManager.NoSuchReservationException ex){
       return createErrorMsg("this reservation doesn't exist", "device: "+id+" / appUUID: "+appUUID);

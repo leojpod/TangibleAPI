@@ -45,7 +45,7 @@ public abstract class TangibleDevice {
   @Deprecated
   public abstract void attachSocket(Socket s);
 
-  public abstract TangibleDeviceCommunicationProtocol<?> getTalk();
+  public abstract TangibleDeviceCommunicationProtocol<? extends TangibleDevice> getTalk();
 
   public abstract boolean isConnected();
 

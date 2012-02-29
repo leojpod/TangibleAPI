@@ -4,6 +4,7 @@
 package managers;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -19,15 +20,15 @@ public interface ReservationManager {
     private static final long serialVersionUID = 1L;
     
   }
-  String reserveDeviceById(String device_id, String app_id) 
+  String reserveDeviceById(String device_id, UUID app_id) 
       throws UnsuccessfulReservationException;
-  String reserveDeviceByType(String type, String app_id) 
+  String reserveDeviceByType(String type, UUID app_id) 
       throws UnsuccessfulReservationException;
-  List<String> reservedByAnApp(String app_id) 
+  List<String> reservedByAnApp(UUID app_id) 
       throws UnsuccessfulReservationException;
   
-  void endReservation(String device_id, String app_id) throws NoSuchReservationException;
+  void endReservation(String device_id, UUID app_id) throws NoSuchReservationException;
   
-  boolean isAReservation(String devID, String appUUID);
+  boolean isAReservation(String devID, UUID appUUID);
   
 }

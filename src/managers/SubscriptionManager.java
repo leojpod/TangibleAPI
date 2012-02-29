@@ -12,6 +12,7 @@ import restful.utils.ApplicationException;
  * @author leo
  */
 public interface SubscriptionManager {
+  
   public static class NoSuchSocket extends ApplicationException{
     private static final long serialVersionUID = 1L;
 
@@ -43,5 +44,7 @@ public interface SubscriptionManager {
   
   void addEventSubscription(UUID appuuid, String device, String[] events);
   void removeEventSubscription(UUID appuuid, String device, String[] events);
+  void addEventsSubscription(UUID appuuid, String device);
+  void removeEventsSubscription(UUID appuuid, String device);
   
 }

@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.Socket;
+import restful.streaming.StreamingThread;
 import tangible.devices.SifteoCubeDevice;
 import tangible.gateway.SiftDriver;
 import tangible.protocols.AbsJsonTCPProtocol;
@@ -20,6 +21,8 @@ import utils.ColorHelper;
 public class SiftDriverCommunicationProtocol 
     extends AbsJsonTCPProtocol
     implements TangibleGatewayCommunicationProtocol<SifteoCubeDevice>{
+  
+  
   
   private SiftDriver _driver;
   
@@ -59,6 +62,16 @@ public class SiftDriverCommunicationProtocol
 
   @Override
   public void showColor(int color, SifteoCubeDevice[] devs) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void addAllEventsNotification(StreamingThread sTh, String[] devs) {
+    
+  }
+
+  @Override
+  public void addAllEventsNotification(StreamingThread sTh, SifteoCubeDevice[] devs) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
   
