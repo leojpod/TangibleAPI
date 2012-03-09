@@ -3,9 +3,11 @@
  */
 package managers;
 
+import java.io.IOException;
 import java.util.UUID;
 import restful.streaming.StreamingThread;
 import restful.utils.ApplicationException;
+import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
  *
@@ -18,6 +20,9 @@ public interface SubscriptionManager {
 
     public NoSuchSocket(String appuuid) {
       super(appuuid);
+    }
+    public NoSuchSocket(UUID appuuid){
+      this(appuuid.toString());
     }
     
     @Override
@@ -32,6 +37,10 @@ public interface SubscriptionManager {
     public AlreadyExistingSocket(String appuuid) {
       super(appuuid);
     }
+    public AlreadyExistingSocket(UUID appuuid){
+      this(appuuid.toString());
+    }
+    
     @Override
     public String getMessage() {
       return super.getMessage()+"\n\t-> a socket already exist for this application!";
@@ -40,11 +49,11 @@ public interface SubscriptionManager {
   
   boolean existsStreaming(UUID appuuid);
   StreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket;
-  StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket;
+  StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket,IOException;
   
-  void addEventSubscription(UUID appuuid, String device, String[] events);
-  void removeEventSubscription(UUID appuuid, String device, String[] events);
-  void addEventsSubscription(UUID appuuid, String device);
-  void removeEventsSubscription(UUID appuuid, String device);
+  void addEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket, DeviceNotFoundException;
+  void removeEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket, DeviceNotFoundException;
+  void addEventsSubscription(UUID appuuid, String device) throws NoSuchSocket, DeviceNotFoundException;
+  void removeEventsSubscription(UUID appuuid, String device) throws NoSuchSocket, DeviceNotFoundException;
   
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Properties;
 import tangible.devices.TangibleDevice;
 import tangible.utils.LoopingThread;
+import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
  *
@@ -59,5 +60,5 @@ public interface DeviceFinder extends LoopingThread {
 
   public boolean existsDevice(String id);
 
-  public TangibleDevice getDevice(String device_id);
+  public TangibleDevice getDevice(String device_id) throws DeviceNotFoundException;
 }

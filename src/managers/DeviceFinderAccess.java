@@ -18,6 +18,7 @@ import tangible.devices.TangibleDevice;
 import tangible.protocols.DeviceAuthenticationProtocol;
 import tangible.utils.AbsLoopingThread;
 import tangible.utils.DeviceContainer;
+import tangible.utils.exceptions.DeviceNotFoundException;
 import tangible.utils.exceptions.WrongProtocolException;
 
 /**
@@ -211,7 +212,7 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
     }
 
     @Override
-    public TangibleDevice getDevice(String device_id) {
+    public TangibleDevice getDevice(String device_id) throws DeviceNotFoundException{
       return _devices.getById(device_id);
     }
 

@@ -123,11 +123,17 @@ public class JsonProtocolHelper {
     return assertArray(subElm);
   }
   
-  
   public static JsonElement assertCtrlMsg(JsonElement elm){
     throw new UnsupportedOperationException("Not implemented yet");
   }
   public static JsonElement assertEventMsg(JsonElement elm){
     throw new UnsupportedOperationException("Not implemented yet");
+  }
+  
+  public static JsonObject createCtrlMsg(JsonObject msg){
+    JsonObject obj = new JsonObject();
+    obj.addProperty("flow", "ctrl");
+    obj.add("msg", msg);
+    return obj;
   }
 }

@@ -3,6 +3,7 @@
  */
 package tangible.utils;
 
+import tangible.utils.exceptions.DeviceNotFoundException;
 import java.util.*;
 import tangible.devices.TangibleDevice;
 
@@ -180,7 +181,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
     return find;
   }
   
-  public TangibleDevice getById(String id) {
+  public TangibleDevice getById(String id) throws DeviceNotFoundException{
     for(Iterator<TangibleDevice> ite = this.iterator(); ite.hasNext();){
       TangibleDevice dev = ite.next();
       if(dev.id.equals(id)){

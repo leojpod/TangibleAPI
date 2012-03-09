@@ -61,6 +61,7 @@ public class SifteoAuthenticationProtocol implements SpecificAuthenticationProto
         driver.add(cube);
         //that's done for this cube
       }
+      driver_talk.startReading();
     } catch (IOException ex) {
       Logger.getLogger(SifteoAuthenticationProtocol.class.getName()).log(Level.SEVERE, null, ex);
     }

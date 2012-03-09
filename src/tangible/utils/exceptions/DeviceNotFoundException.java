@@ -1,13 +1,14 @@
 /*
  * Master-Thesis work: see https://sites.google.com/site/sifthesis/
  */
-package tangible.utils;
+package tangible.utils.exceptions;
 
 /**
  *
  * @author leo
  */
-class DeviceNotFoundException extends RuntimeException {
+public class DeviceNotFoundException extends RuntimeException {
+  private static final long serialVersionUID = 1L;
   String id;
   
   public DeviceNotFoundException(String id) {

@@ -4,7 +4,10 @@
 package restful.device;
 
 import com.google.gson.JsonObject;
+import java.io.IOException;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -15,6 +18,7 @@ import managers.DeviceFinderAccess;
 import managers.ReservationManager;
 import managers.ReservationManagerAccess;
 import managers.SubscriptionManager;
+import managers.SubscriptionManager.AlreadyExistingSocket;
 import managers.SubscriptionManagerAccess;
 import restful.streaming.StreamingThread;
 import restful.utils.ConditionalAccessResource;
@@ -117,12 +121,20 @@ public class RestSpecificDevice extends ConditionalAccessResource {
       //TODO_LATER add a filter here to register only some events
       ){
     //check if there is already a streaming socket for this appuuid
-    StreamingThread sTh = null;
+    StreamingThread sTh;
     
     if(_subs.existsStreaming(_appuuid)){
       sTh = _subs.getStreamingSocket(_appuuid);
     }else{
-      sTh = _subs.createStreamingSocket(_appuuid);
+      try {
+        sTh = _subs.createStreamingSocket(_appuuid);
+      } catch (AlreadyExistingSocket ex) {
+        return createJsonCtrlResponseMsg(ex, Response.Status.BAD_REQUEST);
+      } catch (IOException ex) {
+        JsonObject msg = new JsonObject();
+        msg.addProperty("error", "streaming socket creation failed");
+        return createJsonCtrlResponseMsg(msg, Response.Status.INTERNAL_SERVER_ERROR);
+      }
     }
     //setup the subscription
     _subs.addEventsSubscription(_appuuid, devId);

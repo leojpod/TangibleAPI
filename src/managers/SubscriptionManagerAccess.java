@@ -3,12 +3,14 @@
  */
 package managers;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import restful.streaming.StreamingThread;
 import tangible.devices.TangibleDevice;
 import tangible.protocols.TangibleDeviceCommunicationProtocol;
+import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
  *
@@ -51,25 +53,30 @@ public enum SubscriptionManagerAccess {
     }
 
     @Override
-    public StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket {
-      StreamingThread newSocket = null;
-      
-      
+    public StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket,IOException {
+      StreamingThread newSocket;
+      if(existsStreaming(appuuid)){
+        throw new AlreadyExistingSocket(appuuid.toString());
+      }
+      //else
+      newSocket = new StreamingThread();
+      newSocket.start();
+      _subsSockets.put(appuuid, newSocket);
       return newSocket;
     }
 
     @Override
-    public void addEventSubscription(UUID appuuid, String device, String[] events) {
+    public void addEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket{
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void removeEventSubscription(UUID appuuid, String device, String[] events) {
+    public void removeEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket{
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void addEventsSubscription(UUID appuuid, String device) {
+    public void addEventsSubscription(UUID appuuid, String device) throws NoSuchSocket, DeviceNotFoundException{
       if(!existsStreaming(appuuid)){
         throw new NoSuchSocket(appuuid.toString());
       }

@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/managers/DeviceFinderAccess.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/protocols/TangibleDeviceCommunicationProtocol.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/protocols/AbsJsonTCPProtocol.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/utils/LoopingThread.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/utils/AbsLoopingThread.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/utils/StreamReadingThread.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/restful/device/RestDevice.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/restful/streaming/StreamingThread.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/restful/device/RestSpecificDevice.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/restful/utils/ConditionalAccessResource.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/managers/SubscriptionManager.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/managers/SubscriptionManagerAccess.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/commons/Event.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/protocols/device_speficic/sifteo/SifteoCommunicationProtocol.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/protocols/device_speficic/sifteo/SiftDriverCommunicationProtocol.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/utils/JsonMessageReadingThread.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/tangible/protocols/AbsTCPProtocol.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/managers/ApplicationManagerAccess.java</file>
-        <file>file:/Users/leo/Documents/master-thesis/01-code/TangibleAPI/src/managers/ReservationManagerAccess.java</file>
-    </open-files>
 </project-private>
