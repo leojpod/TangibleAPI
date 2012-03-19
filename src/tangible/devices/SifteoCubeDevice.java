@@ -4,8 +4,8 @@
 package tangible.devices;
 
 import java.net.Socket;
-import tangible.protocols.device_speficic.sifteo.SifteoCommunicationProtocol;
 import tangible.protocols.TangibleDeviceCommunicationProtocol;
+import tangible.protocols.device_speficic.sifteo.SifteoCommunicationProtocol;
 
 /**
  *
