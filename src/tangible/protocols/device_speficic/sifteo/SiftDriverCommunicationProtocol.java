@@ -4,13 +4,18 @@
 package tangible.protocols.device_speficic.sifteo;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import java.awt.Color;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import restful.streaming.StreamingThread;
@@ -23,6 +28,7 @@ import tangible.utils.JsonMessageReadingThread.JsonEventListener;
 import tangible.utils.JsonProtocolHelper;
 import tangible.utils.exceptions.WrongProtocolJsonSyntaxException;
 import utils.ColorHelper;
+import utils.ColorHelper.InvalidColorException;
 
 /**
  *
@@ -31,6 +37,97 @@ import utils.ColorHelper;
 public class SiftDriverCommunicationProtocol 
     extends AbsJsonTCPProtocol
     implements TangibleGatewayCommunicationProtocol<SifteoCubeDevice>{
+
+
+  
+  private class SifteoPicture {
+    SifteoColorBlocks[] pictureBlocks;
+    transient SortedMap<SifteoColor, SifteoColorBlocks> _blocks;
+    public SifteoPicture() {
+      _blocks = new TreeMap<SifteoColor, SifteoColorBlocks> ();
+    }
+    public void addColorBlocks(SifteoColorBlocks cb){
+      _blocks.put(cb.color,cb);
+    }
+    public void addSimpleBlock(SifteoColor c, SifteoBlock b){
+      SifteoColorBlocks cb = _blocks.get(c);
+      if(cb == null){
+        cb = new SifteoColorBlocks();
+        cb.color = c;
+        addColorBlocks(cb);
+      }
+      cb.addBlock(b);
+    }
+    public void flush(){
+      for (SifteoColorBlocks cb : _blocks.values()) {
+        cb.flush();
+      }
+      pictureBlocks = _blocks.values().toArray(new SifteoColorBlocks[0]);
+    }
+  }
+
+  private class SifteoColorBlocks implements Comparable<Object>{
+    SifteoBlock[] blocks;
+    transient List<SifteoBlock> _blocks;
+    SifteoColor color;
+
+    public SifteoColorBlocks() {
+      _blocks = new ArrayList<SifteoBlock>();
+    }
+    public void addBlock(SifteoBlock b){
+      _blocks.add(b);
+    }
+    public void flush(){
+      blocks = _blocks.toArray(new SifteoBlock[0]);
+    }
+
+    @Override
+    public int compareTo(Object o){
+      if( o instanceof SifteoColorBlocks){
+        return compareTo((SifteoColorBlocks) o);
+      }else if(o instanceof SifteoColor){
+        return compareTo((SifteoColor) o);
+      }else{
+        throw new ClassCastException("not comparable with this kind of object");
+      }
+    }
+    
+    
+    public int compareTo(SifteoColorBlocks t) {
+      return color.compareTo(t.color);
+    }
+  }
+  private class SifteoColor implements Comparable<SifteoColor>{
+    int r, g, b;
+    transient int c;
+    public SifteoColor(int c) {
+      Color color = new Color(c);
+      this.c = color.getRGB();
+      r = color.getRed();
+      g = color.getGreen();
+      b = color.getBlue();
+      if(!ColorHelper.isValidColor(r, g, b)){
+        throw new InvalidColorException(c);
+      }
+    }
+
+    @Override
+    public int compareTo(SifteoColor that) {
+      return this.c - that.c;
+    }
+    
+  }
+  private class SifteoBlock{
+    int x, y, w, h;
+
+    public SifteoBlock(int x, int y, int w, int h) {
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+    }
+    
+  }
   
   private final class StreamingThreadReporter implements JsonEventListener{
 
@@ -107,7 +204,7 @@ public class SiftDriverCommunicationProtocol
     JsonObject param = new JsonObject();
     param.add("color",rgb);
     param.add("cubes", new Gson().toJsonTree(ids));
-    obj.add("param", param);
+    obj.add("params", param);
     
     this.sendJsonEventMsg(obj);
   }
@@ -149,5 +246,109 @@ public class SiftDriverCommunicationProtocol
     throw new UnsupportedOperationException("Not supported yet.");
   }
   
+  
+  @Override
+  public void showPicture(BufferedImage img, String[] devs) {
+    show_simplePicture(devs);
+    String type;
+    switch(img.getType()){
+      case BufferedImage.TYPE_INT_ARGB:
+        type = "INT_ARGB";
+        break;
+      case BufferedImage.TYPE_INT_RGB:
+        type = "INT_RGB";
+        break;
+      case BufferedImage.TYPE_3BYTE_BGR:
+        type = "3BYTES_BGR";
+        break;
+      case BufferedImage.TYPE_CUSTOM:
+        type = "custom";
+        break;
+      case BufferedImage.TYPE_INT_ARGB_PRE:
+        type = "INT_ARGB_PRE";
+        break;
+      default:
+        type = "other";
+        break;
+    }
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "bufferedImage color system is : {0} which is also known as :{1}", new Object[]{img.getType(), type});
+    BufferedImage scaled;
+    double h = img.getHeight();
+    double w = img.getWidth();
+    
+    double ratio_x = 128.0/w;
+    double ratio_y = 128.0/h;
+    double ratio =  (ratio_x < 1 || ratio_y < 1)? ((ratio_x < ratio_y)? ratio_x: ratio_y): ((ratio_x < ratio_y)? ratio_y: ratio_x);
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "scaling the picture to match the right size");
+    
+    AffineTransform transform = new AffineTransform();
+    transform.scale(ratio, ratio);
+    AffineTransformOp scaleOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+    scaled = scaleOp.filter(img, null);
+    
+    SifteoPicture pic = new SifteoPicture();
+    
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "About to go through every pixel to get their value and add them into the SifteoPicture");
+    
+    for(int x = 0; x < 128; x ++){
+      for(int y = 0; y < 128; y++){
+        try{
+          int rgbValue = scaled.getRGB(x, y);
+          SifteoColor c = new SifteoColor(rgbValue);
+          SifteoBlock b = new SifteoBlock(x, y, 1, 1);
+          pic.addSimpleBlock(c, b);
+        }catch(InvalidColorException ex){
+          Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "let''s ignore the pixel : ({0},{1}) its color is invalid ({2})", new Object[]{x, y, ex.value});
+        }
+      }
+    }
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "looping over the pixel-> done! let's translate that into JSON now!");
+    pic.flush();
+    
+    JsonElement jsonPic = new Gson().toJsonTree(pic);
+    JsonObject msg = new JsonObject();
+    msg.addProperty("command", "show_json_picture");
+    JsonObject params = new JsonObject();
+    params.add("cubes", new Gson().toJsonTree(devs));
+    params.add("picture",jsonPic);
+    msg.add("params", params);
+    this.sendJsonEventMsg(msg);
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "picture command sent!");
+    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "the sent command looks like : {0}", msg.toString());
+  }
+
+  @Override
+  public void showPicture(BufferedImage img, SifteoCubeDevice[] devs) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+  
+
+  
+  private void show_simplePicture(String[] devs) {
+    SifteoPicture pic = new SifteoPicture();
+    
+    SifteoColor c = new SifteoColor(0x00ff00);
+    SifteoBlock b = new SifteoBlock(0, 0, 32, 32);
+    pic.addSimpleBlock(c, b);
+    
+    c = new SifteoColor(0xff00ff);
+    b = new SifteoBlock(32, 32, 32, 32);
+    pic.addSimpleBlock(c, b);
+    
+    c = new SifteoColor(0x0000ff);
+    b = new SifteoBlock(64, 64, 32, 32);
+    pic.addSimpleBlock(c, b);
+    
+    pic.flush();
+    
+    JsonElement jsonPic = new Gson().toJsonTree(pic);
+    JsonObject msg = new JsonObject();
+    msg.addProperty("command", "show_json_picture");
+    JsonObject params = new JsonObject();
+    params.add("cubes", new Gson().toJsonTree(devs));
+    params.add("picture",jsonPic);
+    msg.add("params", params);
+    this.sendJsonEventMsg(msg);
+  }
   
 }

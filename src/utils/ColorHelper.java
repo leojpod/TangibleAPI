@@ -26,10 +26,24 @@ public class ColorHelper {
         rgb[2-i] = temp % 0x100;
         temp = temp / 0x100;
       }
+      rgb[0] = rgb[0] % 0x100; //just in case there is some alpha information on top of that... 
     }catch(ArithmeticException ex){
       //let's do nothing: this is just 'cause the color if of the format 0x0000XX
     }
     //if there were other codes before the red component they are just cut
     return rgb;
+  }
+  public static class InvalidColorException extends RuntimeException{
+    private static final long serialVersionUID = 1L;
+    public final int value;
+
+    public InvalidColorException(int c) {
+      this.value = c;
+    }
+
+    @Override
+    public String getMessage() {
+      return "the given color : "+value+" is not a valid one!";
+    }
   }
 }

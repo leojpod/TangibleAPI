@@ -3,6 +3,7 @@
  */
 package tangible.protocols;
 
+import java.awt.image.BufferedImage;
 import restful.streaming.StreamingThread;
 import tangible.devices.TangibleDevice;
 
@@ -20,4 +21,6 @@ public interface TangibleGatewayCommunicationProtocol<T extends TangibleDevice> 
   void showColor(int color, T[] devs);
   void addAllEventsNotification(StreamingThread sTh, String[] devs);
   void addAllEventsNotification(StreamingThread sTh, T[] devs);
+  void showPicture(BufferedImage img, String[] devs);
+  void showPicture(BufferedImage img, T[] devs);
 }
