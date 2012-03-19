@@ -4,22 +4,23 @@
 package restful.device;
 
 import com.google.gson.JsonObject;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.io.IOException;
-import java.util.UUID;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import managers.DeviceFinder;
-import managers.DeviceFinderAccess;
-import managers.ReservationManager;
-import managers.ReservationManagerAccess;
-import managers.SubscriptionManager;
 import managers.SubscriptionManager.AlreadyExistingSocket;
-import managers.SubscriptionManagerAccess;
+import managers.*;
 import restful.streaming.StreamingThread;
 import restful.utils.ConditionalAccessResource;
 import restful.utils.UnauthorizedAccessException;
@@ -113,6 +114,20 @@ public class RestSpecificDevice extends ConditionalAccessResource {
     TangibleDevice dev = _finder.getDevice(devID);
     dev.getTalk().showColor(r, g, b);
     return this.createOKCtrlMsg();
+  }
+  
+  @PUT @Path("/show_picture")
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  public Response showPicture(@PathParam("device_ID") String devId, InputStream input){
+        try {
+            BufferedImage image = ImageIO.read(input);
+            TangibleDevice dev = _finder.getDevice(devId);
+            dev.getTalk().showPicture(image);
+            return this.createOKCtrlMsg();
+        } catch (IOException ex) {
+            Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.SEVERE, null, ex);
+            return this.createErrorMsg("Could not procceed the picture", "something didn't work with the given picture");
+        }
   }
   
   @PUT @Path("/subscribe")
