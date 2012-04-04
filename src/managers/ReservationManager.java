@@ -5,6 +5,7 @@ package managers;
 
 import java.util.List;
 import java.util.UUID;
+import javax.ws.rs.WebApplicationException;
 
 /**
  *
@@ -12,11 +13,11 @@ import java.util.UUID;
  */
 public interface ReservationManager {
 
-  public static class UnsuccessfulReservationException extends RuntimeException{
+  public static class UnsuccessfulReservationException extends WebApplicationException{
     private static final long serialVersionUID = 1L;
     
   }
-  public static class NoSuchReservationException extends RuntimeException{
+  public static class NoSuchReservationException extends WebApplicationException{
     private static final long serialVersionUID = 1L;
     
   }

@@ -249,7 +249,7 @@ public class SiftDriverCommunicationProtocol
   
   @Override
   public void showPicture(BufferedImage img, String[] devs) {
-    show_simplePicture(devs);
+    //show_simplePicture(devs);
     String type;
     switch(img.getType()){
       case BufferedImage.TYPE_INT_ARGB:

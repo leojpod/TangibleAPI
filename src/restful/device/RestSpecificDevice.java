@@ -7,6 +7,8 @@ import com.google.gson.JsonObject;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -117,10 +119,15 @@ public class RestSpecificDevice extends ConditionalAccessResource {
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response showPicture(@PathParam("device_ID") String devId, InputStream input) {
     try {
+      Date startTime = new Date();
+      DateFormat format = DateFormat.getInstance();
+      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Starting to process the showPicture command : time is -> {0}", format.format(startTime));
       ImageInputStream imgInput = ImageIO.createImageInputStream(input);
       BufferedImage image = ImageIO.read(imgInput);
       TangibleDevice dev = _finder.getDevice(devId);
       dev.getTalk().showPicture(image);
+      Date endTime = new Date();
+      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Ending to process the showPicture command : time is -> {0}", format.format(endTime));
       return this.createOKCtrlMsg();
     } catch (IOException ex) {
       Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.SEVERE, null, ex);
