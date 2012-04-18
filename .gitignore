@@ -3,3 +3,5 @@
 nbproject/private/private.properties
 
 nbproject/private/private.properties
+/dist/
+.DS_Store
