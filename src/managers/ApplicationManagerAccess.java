@@ -4,6 +4,7 @@
 package managers;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,11 +39,16 @@ public enum ApplicationManagerAccess implements SingletonAccessor<ApplicationMan
     public String removeApplication(String uuid) {
       UUID appId = UUID.fromString(uuid);
       if (_apps.containsKey(appId)) {
+        ReservationManager mgr = ReservationManagerAccess.getInstance();
+        List<String> reservedDevices = mgr.reservedByAnApp(appId);
+        for (String dev : reservedDevices) {
+          mgr.endReservation(dev, appId);
+        }
         _apps.remove(appId);
         return "det är en bra succes";
       } else {
         //TODO throw exception and catch it in the RESTful part
-        return "det var inte bra!";
+        throw new UnsuccessfulApplicationUnRegistration(uuid);
       }
     }
 
