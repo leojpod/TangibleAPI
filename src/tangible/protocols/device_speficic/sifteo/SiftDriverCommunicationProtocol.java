@@ -34,12 +34,12 @@ import utils.ColorHelper.InvalidColorException;
  *
  * @author leo
  */
-public class SiftDriverCommunicationProtocol 
+public class SiftDriverCommunicationProtocol
     extends AbsJsonTCPProtocol
     implements TangibleGatewayCommunicationProtocol<SifteoCubeDevice>{
 
 
-  
+
   private class SifteoPicture {
     SifteoColorBlocks[] pictureBlocks;
     transient SortedMap<SifteoColor, SifteoColorBlocks> _blocks;
@@ -91,8 +91,8 @@ public class SiftDriverCommunicationProtocol
         throw new ClassCastException("not comparable with this kind of object");
       }
     }
-    
-    
+
+
     public int compareTo(SifteoColorBlocks t) {
       return color.compareTo(t.color);
     }
@@ -115,7 +115,7 @@ public class SiftDriverCommunicationProtocol
     public int compareTo(SifteoColor that) {
       return this.c - that.c;
     }
-    
+
   }
   private class SifteoBlock{
     int x, y, w, h;
@@ -126,13 +126,13 @@ public class SiftDriverCommunicationProtocol
       this.w = w;
       this.h = h;
     }
-    
+
   }
-  
+
   private final class StreamingThreadReporter implements JsonEventListener{
 
     private StreamingThread _th;
-    //TODO_LATER store a list of events to which we subscribed plus a special 
+    //TODO_LATER store a list of events to which we subscribed plus a special
     //    boolean to know when we are reporting everything (hence efficiency)
     public List<String> _followedDevices;
 
@@ -140,13 +140,13 @@ public class SiftDriverCommunicationProtocol
       this._th = th;
       _followedDevices = new ArrayList<String>();
     }
-    
-    
+
+
     public StreamingThreadReporter(StreamingThread th, String[] devId) {
       this(th);
       this.addDevices(devId);
     }
-    
+
     public void addEventNotification(String event){
       throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -169,19 +169,19 @@ public class SiftDriverCommunicationProtocol
           //this is a valid and followed event let's send it!
           _th.sendEvent(t);
         }else{
-          Logger.getLogger(StreamingThreadReporter.class.getName()).log(Level.INFO, "no one following this device... ");
+//          Logger.getLogger(StreamingThreadReporter.class.getName()).log(Level.INFO, "no one following this device... ");
         }
       }catch(WrongProtocolJsonSyntaxException ex){
         Logger.getLogger(StreamingThreadReporter.class.getName()).log(Level.INFO, "ignoring a badly formated message: {0}\n\tthe message was: {1}", new Object[]{ex.getMessage(), t.toString()});
       }
     }
-    
+
   }
-  
+
   private SiftDriver _driver;
   private JsonMessageReadingThread _readingThread;
   private List<StreamingThreadReporter> _reporters;
-  
+
   public SiftDriverCommunicationProtocol(SiftDriver driver, Socket s) throws IOException{
     super(s);
     s.setSoTimeout(0);
@@ -205,7 +205,7 @@ public class SiftDriverCommunicationProtocol
     param.add("color",rgb);
     param.add("cubes", new Gson().toJsonTree(ids));
     obj.add("params", param);
-    
+
     this.sendJsonEventMsg(obj);
   }
   public void startReading(){
@@ -235,7 +235,7 @@ public class SiftDriverCommunicationProtocol
     this._readingThread.addEventListener(aReporter);
     //TODO notify the devices that they have to report the events
     JsonObject msg = new JsonObject();
-    msg.addProperty("command", "reportAllEvents");//TODO LATER send an array of events to report 
+    msg.addProperty("command", "reportAllEvents");//TODO LATER send an array of events to report
     JsonElement devsArray = new Gson().toJsonTree(devs);
     msg.add("params", devsArray);
     this.sendJsonCtrlMsg(msg);
@@ -245,8 +245,8 @@ public class SiftDriverCommunicationProtocol
   public void addAllEventsNotification(StreamingThread sTh, SifteoCubeDevice[] devs) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
-  
-  
+
+
   @Override
   public void showPicture(BufferedImage img, String[] devs) {
     //show_simplePicture(devs);
@@ -271,25 +271,25 @@ public class SiftDriverCommunicationProtocol
         type = "other";
         break;
     }
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "bufferedImage color system is : {0} which is also known as :{1}", new Object[]{img.getType(), type});
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "bufferedImage color system is : {0} which is also known as :{1}", new Object[]{img.getType(), type});
     BufferedImage scaled;
     double h = img.getHeight();
     double w = img.getWidth();
-    
+
     double ratio_x = 128.0/w;
     double ratio_y = 128.0/h;
     double ratio =  (ratio_x < 1 || ratio_y < 1)? ((ratio_x < ratio_y)? ratio_x: ratio_y): ((ratio_x < ratio_y)? ratio_y: ratio_x);
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "scaling the picture to match the right size");
-    
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "scaling the picture to match the right size");
+
     AffineTransform transform = new AffineTransform();
     transform.scale(ratio, ratio);
     AffineTransformOp scaleOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
     scaled = scaleOp.filter(img, null);
-    
+
     SifteoPicture pic = new SifteoPicture();
-    
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "About to go through every pixel to get their value and add them into the SifteoPicture");
-    
+
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "About to go through every pixel to get their value and add them into the SifteoPicture");
+
     for(int x = 0; x < 128; x ++){
       for(int y = 0; y < 128; y++){
         try{
@@ -298,13 +298,13 @@ public class SiftDriverCommunicationProtocol
           SifteoBlock b = new SifteoBlock(x, y, 1, 1);
           pic.addSimpleBlock(c, b);
         }catch(InvalidColorException ex){
-          Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "let''s ignore the pixel : ({0},{1}) its color is invalid ({2})", new Object[]{x, y, ex.value});
+//          Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "let''s ignore the pixel : ({0},{1}) its color is invalid ({2})", new Object[]{x, y, ex.value});
         }
       }
     }
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "looping over the pixel-> done! let's translate that into JSON now!");
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "looping over the pixel-> done! let's translate that into JSON now!");
     pic.flush();
-    
+
     JsonElement jsonPic = new Gson().toJsonTree(pic);
     JsonObject msg = new JsonObject();
     msg.addProperty("command", "show_json_picture");
@@ -313,34 +313,34 @@ public class SiftDriverCommunicationProtocol
     params.add("picture",jsonPic);
     msg.add("params", params);
     this.sendJsonEventMsg(msg);
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "picture command sent!");
-    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "the sent command looks like : {0}", msg.toString());
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "picture command sent!");
+//    Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "the sent command looks like : {0}", msg.toString());
   }
 
   @Override
   public void showPicture(BufferedImage img, SifteoCubeDevice[] devs) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
-  
 
-  
+
+
   private void show_simplePicture(String[] devs) {
     SifteoPicture pic = new SifteoPicture();
-    
+
     SifteoColor c = new SifteoColor(0x00ff00);
     SifteoBlock b = new SifteoBlock(0, 0, 32, 32);
     pic.addSimpleBlock(c, b);
-    
+
     c = new SifteoColor(0xff00ff);
     b = new SifteoBlock(32, 32, 32, 32);
     pic.addSimpleBlock(c, b);
-    
+
     c = new SifteoColor(0x0000ff);
     b = new SifteoBlock(64, 64, 32, 32);
     pic.addSimpleBlock(c, b);
-    
+
     pic.flush();
-    
+
     JsonElement jsonPic = new Gson().toJsonTree(pic);
     JsonObject msg = new JsonObject();
     msg.addProperty("command", "show_json_picture");
@@ -350,5 +350,5 @@ public class SiftDriverCommunicationProtocol
     msg.add("params", params);
     this.sendJsonEventMsg(msg);
   }
-  
+
 }

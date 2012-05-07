@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
 import tangible.devices.TangibleDevice;
 import tangible.protocols.DeviceAuthenticationProtocol;
 import tangible.utils.AbsLoopingThread;
@@ -28,8 +30,8 @@ import tangible.utils.exceptions.WrongProtocolException;
  */
 public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
   INSTANCE;
-  
-  
+
+
 
   private static class DeviceFinderImpl extends AbsLoopingThread implements DeviceFinder {
 
@@ -69,12 +71,12 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
 
         }
       } catch (SocketTimeoutException ex) {
-        //exiting on a timeout Exception 
+        //exiting on a timeout Exception
         //the discovery session is over for now.
-        //Logger.getLogger(DeviceFinderImpl.class.getName()).log(Level.INFO, "expected socket timeout");
+        Logger.getLogger(DeviceFinderImpl.class.getName()).log(Level.INFO, "expected socket timeout");
       }
     }
-    
+
     private void attemptDeviceAuthenticationV1(Socket sock) throws IOException{
       DeviceAuthenticationProtocol auth = new DeviceAuthenticationProtocol(sock, 10000);
       TangibleDevice dev = auth.authenticateDevice();
@@ -86,8 +88,8 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
       //TODO_LATER check the device compatibility and so...
 
       auth.finalizeAuthentication();
-      Logger.getLogger(DeviceFinderImpl.class.getName()).
-          log(Level.INFO, "the device has been notified of this success");
+//      Logger.getLogger(DeviceFinderImpl.class.getName()).
+//          log(Level.INFO, "the device has been notified of this success");
     }
     private void attemptDeviceAuthenticationV2(Socket sock) throws IOException{
       DeviceAuthenticationProtocol authProc = new DeviceAuthenticationProtocol(sock, 10000, properties.protocolVersion());
@@ -111,7 +113,7 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
 
     private void loadProperties() {
       properties = new DeviceFinderProperties();
-      String[] propertiesURI = 
+      String[] propertiesURI =
         {
           "../tangibleProperties.properties",
           "./tangibleProperties.properties",
@@ -163,7 +165,7 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
        * DeviceHandler and add it to the global list of connected devices - then
        * put the thread to sleep, - is waked up: back to the first step!
        */
-      Logger.getLogger(DeviceFinderImpl.class.getName()).log(Level.INFO, "DeviceFinder starting now");
+//      Logger.getLogger(DeviceFinderImpl.class.getName()).log(Level.INFO, "DeviceFinder starting now");
       try {
         int timeout = properties.timeout() * 1000;
         _listening_sock.setSoTimeout(timeout);
@@ -221,15 +223,15 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
       return properties;
     }
   }
-  
+
   private DeviceFinder _finder;
 
   private DeviceFinderAccess() {
     _finder = new DeviceFinderImpl();
   }
-  
+
   public static DeviceFinder getInstance(){
     return INSTANCE._finder;
   }
-  
+
 }

@@ -34,26 +34,26 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
   }
 
   @Deprecated
-  public DeviceAuthenticationProtocol(Socket s, int timeout) 
+  public DeviceAuthenticationProtocol(Socket s, int timeout)
       throws IOException {
     super(s);
     s.setSoTimeout(timeout);
     _finder = DeviceFinderAccess.getInstance();
     _api_protocol_version = "deprecated_protocol";
   }
-  
+
   public DeviceAuthenticationProtocol(Socket s, int timeout,
       String api_protocol_version) throws IOException{
     super(s);
     s.setSoTimeout(timeout);
     _api_protocol_version = api_protocol_version;
   }
-  
+
   @Deprecated
   public TangibleDevice authenticateDevice() throws WrongProtocolException {
     return authenticateDeviceV2();
   }
-  
+
   public void authenticateDevices(final DeviceFoundCallBack cb)
       throws WrongProtocolException {
     try{
@@ -103,13 +103,13 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     return dev;
     // </editor-fold>
   }
-  
-  
+
+
   private TangibleDevice authenticateDeviceV2() throws WrongProtocolException {
     JsonElement elem = this.readJSON();
     JsonElement anElem; JsonObject anObj;
-    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
-        Level.INFO, "parsed a Json element: {0}", elem.toString());
+//    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
+    //    Level.INFO, "parsed a Json element: {0}", elem.toString());
     TangibleDevice dev = null;
     if(!elem.isJsonObject()){
       WrongProtocolException ex =
@@ -120,8 +120,8 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     }
     //elem is an Object
     JsonObject obj = elem.getAsJsonObject();
-    if((anElem = obj.get("flow")) == null 
-        || !anElem.isJsonPrimitive() 
+    if((anElem = obj.get("flow")) == null
+        || !anElem.isJsonPrimitive()
         || !anElem.getAsString().equals("ctrl")){
       WrongProtocolException ex =
           new WrongProtocolJsonSyntaxException("The middleware expected a "
@@ -143,44 +143,44 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
   public void finalizeAuthentication() {
     finalizeAuthenticationV2();
   }
-  
+
   private void finalizeAuthenticationV2(){
     JsonObject obj = new JsonObject();
     obj.add("success", new JsonPrimitive(true));
     obj.add("msg", new JsonPrimitive("OK_Authentication_successful"));
     this.sendJsonCtrlMsg(obj);
   }
-  
-  
+
+
   private void authenticateDevicesV3(DeviceFoundCallBack cb)
       throws WrongProtocolException {
     JsonElement elem = this.readJSON();
-    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
-        Level.INFO, "parsed a Json element: {0}", elem.toString());
-    
+//    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
+//        Level.INFO, "parsed a Json element: {0}", elem.toString());
+
     //check that we received a msg:
     JsonObject jsonMsg = JsonProtocolHelper.assertObject(elem);
-    
+
     //check that this is actually a msg of type ctrl
     String flow = JsonProtocolHelper.assertStringInObject(jsonMsg, "flow");
     if(!flow.equals("ctrl")){
       throw new WrongProtocolJsonSyntaxException("The middleware expected a "
           + "control message");
     }
-    
-    //proceed the authentication of the devices including the 
+
+    //proceed the authentication of the devices including the
     //  sifteo communicator and the cubes for instance
     JsonObject content
         = JsonProtocolHelper.assertObjectInObject(jsonMsg, "msg");
     String type = JsonProtocolHelper.assertStringInObject(content, "type");
-    
+
     //check the API version
-    String version 
+    String version
         = JsonProtocolHelper.assertStringInObject(content, "protocolVersion");
     if(!version.equals(_api_protocol_version)){
       throw new WrongProtocolVersionException(version, _api_protocol_version);
     }
-    
+
     SpecificAuthenticationProtocol spec_protocol = ProtocolSelector.getAuthenticationProtocol(type);
     spec_protocol.authenticateDevices(content, this._sock, cb);
     //NOTE: I am not sure that sending the socket here is the best idea but that
@@ -188,9 +188,9 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     //and we are good
     //but just before that we need to tell the device that the authentication worked fine
     finalizeAuthentication();
-    System.out.println("and we are good, "
-        + "the devices authentication is done for this one!");
+//    System.out.println("and we are good, "
+//        + "the devices authentication is done for this one!");
   }
-  
-  
+
+
 }

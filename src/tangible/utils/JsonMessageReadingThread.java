@@ -22,20 +22,20 @@ import java.util.logging.Logger;
  * @author leo
  */
 public class JsonMessageReadingThread extends StreamReadingThread<BufferedReader> {
-  
+
   public interface JsonEventListener extends Listener<JsonObject>{}
-  
+
   private JsonStreamParser _parser;
   private List<JsonEventListener> _eventListener;
   private BlockingQueue<JsonObject> _ctrlQueue;
-  
+
   public JsonMessageReadingThread(BufferedReader reader) {
     super(reader);
     _parser = new JsonStreamParser(_reader);
     _eventListener = new ArrayList<JsonEventListener>();
     _ctrlQueue = new LinkedBlockingDeque<JsonObject>();
   }
-  
+
   @Override
   public void read() {
     //read one JsonElement and finish
@@ -45,7 +45,7 @@ public class JsonMessageReadingThread extends StreamReadingThread<BufferedReader
       return;
     }
     JsonElement elm = _parser.next();
-    Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "we received the elements: {0}", elm.toString());
+//    Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "we received the elements: {0}", elm.toString());
     //TODO filter the event and control message and add them in their respective stack
     //the driver will take care of reading them
     if(!elm.isJsonObject()){
@@ -75,17 +75,17 @@ public class JsonMessageReadingThread extends StreamReadingThread<BufferedReader
       this.handleCtrlMsg(msg);
     }else{
       Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "received an incorrect flow value, ignoring the message");
-    }    
+    }
   }
-  
-  
+
+
   public void addEventListener(JsonEventListener listener){
     this._eventListener.add(listener);
   }
   public void removeEventListener(JsonEventListener listener){
     this._eventListener.remove(listener);
   }
-  
+
   private void handleCtrlMsg(JsonObject msg){
     _ctrlQueue.add(msg);
   }

@@ -3,9 +3,11 @@
  */
 package managers;
 
+import commons.ApiException;
 import java.util.List;
 import java.util.UUID;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  *
@@ -13,23 +15,34 @@ import javax.ws.rs.WebApplicationException;
  */
 public interface ReservationManager {
 
-  public static class UnsuccessfulReservationException extends WebApplicationException{
+  public static class UnsuccessfulReservationException extends ApiException{
     private static final long serialVersionUID = 1L;
-    
+
+    public UnsuccessfulReservationException() {
+      this(Response.Status.CONFLICT, "");
+    }
+    public UnsuccessfulReservationException(Status status, String cause) {
+      super(status, "Reservation unsuccessful"+((cause == null || cause.equals(""))? "":" ("+cause+")"));
+    }
   }
-  public static class NoSuchReservationException extends WebApplicationException{
+  public static class NoSuchReservationException extends ApiException{
     private static final long serialVersionUID = 1L;
-    
+    public NoSuchReservationException() {
+      this(Response.Status.CONFLICT, "Reservation not found");
+    }
+    public NoSuchReservationException(Status status, String cause) {
+      super(status, "Reservation not found"+((cause == null || cause.equals(""))? "":" ("+cause+")"));
+    }
   }
-  String reserveDeviceById(String device_id, UUID app_id) 
+  String reserveDeviceById(String device_id, UUID app_id)
       throws UnsuccessfulReservationException;
-  String reserveDeviceByType(String type, UUID app_id) 
+  String reserveDeviceByType(String type, UUID app_id)
       throws UnsuccessfulReservationException;
-  List<String> reservedByAnApp(UUID app_id) 
+  List<String> reservedByAnApp(UUID app_id)
       throws UnsuccessfulReservationException;
-  
+
   void endReservation(String device_id, UUID app_id) throws NoSuchReservationException;
-  
+
   boolean isAReservation(String devID, UUID appUUID);
-  
+
 }

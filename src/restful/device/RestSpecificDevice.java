@@ -4,6 +4,7 @@
 package restful.device;
 
 import com.google.gson.JsonObject;
+import commons.ApiException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,8 +47,12 @@ public class RestSpecificDevice extends ConditionalAccessResource {
     }
   }
 
-  @PUT
-  @Path("/show_color")
+  @OPTIONS @Path("/show_color")
+  public Response showColorOptions(
+          @HeaderParam("Access-Control-Request-Headers") String requestH){
+    return makeCORS(requestH);
+  }
+  @PUT @Path("/show_color")
   public Response showColor(
       @PathParam("device_ID") String devID,
       //@PathParam("appuuid") String appUUID,
@@ -56,11 +61,12 @@ public class RestSpecificDevice extends ConditionalAccessResource {
       @FormParam("b") Integer b_value,
       @FormParam("color") String color) {
     Integer color_value;
-    System.out.println("trying to change the cubes'color!");
-    System.out.println("here are the variables: \n"
-        + "\t device_ID " + devID + "\n"
-        + "\t color " + color + "\n"
-        + "\t appuuid " + _appuuid);
+    System.out.println("show_color on #"+devID);
+//    System.out.println("trying to change the cubes'color!");
+//    System.out.println("here are the variables: \n"
+//        + "\t device_ID " + devID + "\n"
+//        + "\t color " + color + "\n"
+//        + "\t appuuid " + _appuuid);
 //    if(appUUID == null){
 //      return this.createMissingCompulsoryParamMsg("appUUID");
 //    }
@@ -114,20 +120,25 @@ public class RestSpecificDevice extends ConditionalAccessResource {
     return this.createOKCtrlMsg();
   }
 
-  @PUT
-  @Path("/show_picture")
+  @OPTIONS @Path("/show_picture")
+  public Response showPictureOptions(
+          @HeaderParam("Access-Control-Request-Headers") String requestH){
+    return makeCORS(requestH);
+  }
+  @PUT @Path("/show_picture")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response showPicture(@PathParam("device_ID") String devId, InputStream input) {
+    System.out.println("show_picture on #"+devId);
     try {
       Date startTime = new Date();
       DateFormat format = DateFormat.getInstance();
-      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Starting to process the showPicture command : time is -> {0}", format.format(startTime));
+//      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Starting to process the showPicture command : time is -> {0}", format.format(startTime));
       ImageInputStream imgInput = ImageIO.createImageInputStream(input);
       BufferedImage image = ImageIO.read(imgInput);
       TangibleDevice dev = _finder.getDevice(devId);
       dev.getTalk().showPicture(image);
       Date endTime = new Date();
-      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Ending to process the showPicture command : time is -> {0}", format.format(endTime));
+//      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Ending to process the showPicture command : time is -> {0}", format.format(endTime));
       return this.createOKCtrlMsg();
     } catch (IOException ex) {
       Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.SEVERE, null, ex);
@@ -135,32 +146,41 @@ public class RestSpecificDevice extends ConditionalAccessResource {
     }
   }
 
+  @OPTIONS @Path("/subscribe")
+  public Response subscribeOptions(
+          @HeaderParam("Access-Control-Request-Headers") String requestH){
+    return makeCORS(requestH);
+  }
   @PUT
   @Path("/subscribe")
   public Response addSubscription(
       @PathParam("device_ID") String devId //TODO_LATER add a filter here to register only some events
       ) {
+    System.out.println("subscription required for #"+devId);
     //check if there is already a streaming socket for this appuuid
     StreamingThread sTh;
-
-    if (_subs.existsStreaming(_appuuid)) {
-      sTh = _subs.getStreamingSocket(_appuuid);
-    } else {
-      try {
-        sTh = _subs.createStreamingSocket(_appuuid);
-      } catch (AlreadyExistingSocket ex) {
-        return createJsonCtrlResponseMsg(ex, Response.Status.BAD_REQUEST);
-      } catch (IOException ex) {
-        JsonObject msg = new JsonObject();
-        msg.addProperty("error", "streaming socket creation failed");
-        return createJsonCtrlResponseMsg(msg, Response.Status.INTERNAL_SERVER_ERROR);
+    try{
+      if (_subs.existsStreaming(_appuuid)) {
+        sTh = _subs.getStreamingSocket(_appuuid);
+      } else {
+        try {
+          sTh = _subs.createStreamingSocket(_appuuid);
+        } catch (AlreadyExistingSocket ex) {
+          return new RestApiException(ex, true).getResponse();
+        } catch (IOException ex) {
+          JsonObject msg = new JsonObject();
+          msg.addProperty("error", "streaming socket creation failed");
+          return createJsonCtrlResponseMsg(msg, Response.Status.INTERNAL_SERVER_ERROR);
+        }
       }
+      //setup the subscription
+      _subs.addEventsSubscription(_appuuid, devId);
+      //send back the port
+      JsonObject obj = new JsonObject();
+      obj.addProperty("port", sTh.getPort());
+      return createJsonCtrlResponseMsg(obj, Response.Status.OK);
+    }catch (ApiException ex){
+      return new RestApiException(ex, true).getResponse();
     }
-    //setup the subscription
-    _subs.addEventsSubscription(_appuuid, devId);
-    //send back the port
-    JsonObject obj = new JsonObject();
-    obj.addProperty("port", sTh.getPort());
-    return createJsonCtrlResponseMsg(obj, Response.Status.OK);
   }
 }

@@ -13,6 +13,7 @@ import javax.ws.rs.core.UriBuilder;
 import managers.DeviceFinder;
 import managers.DeviceFinderAccess;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.StaticHttpHandler;
 
 /**
  *
@@ -26,14 +27,14 @@ public class TangibleAPI {
   public static void main(String[] args) throws IOException {
     DeviceFinder finder = DeviceFinderAccess.getInstance();
     finder.start();
-    System.out.println("DeviceFinder is started!");
-    
+//    System.out.println("DeviceFinder is started!");
+
     //let's start the REST part
     HttpServer restServer = startServer();
-    System.out.println("the Rest Server is started!");
-    System.out.println("the communication is now working with the outside world!");
-    
-    
+//    System.out.println("the Rest Server is started!");
+//    System.out.println("the communication is now working with the outside world!");
+
+
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     System.out.println("Press enter to shut down the TangibleAPI daemon");
     try {
@@ -46,15 +47,18 @@ public class TangibleAPI {
     }
 
   }
-  
+
   private static URI getBaseURI() {
     return UriBuilder.fromUri("http://localhost/").port(9998).build();
   }
   public static final URI BASE_URI = getBaseURI();
-
   protected static HttpServer startServer() throws IOException {
-    System.out.println("Starting grizzly...");
+//    System.out.println("Starting grizzly...");
     ResourceConfig rc = new PackagesResourceConfig("restful");
-    return GrizzlyServerFactory.createHttpServer(BASE_URI, rc);
+
+    HttpServer server = GrizzlyServerFactory.createHttpServer(BASE_URI, rc);
+    server.getServerConfiguration().addHttpHandler(new StaticHttpHandler("resources\\"), "/resources");
+
+    return server;
   }
 }

@@ -45,7 +45,7 @@ public class SifteoAuthenticationProtocol implements SpecificAuthenticationProto
       JsonArray cubesId = JsonProtocolHelper.assertArrayInObject(obj, "cubesId");
       //create them a cube device for each cube id given by the message
       //instanticate them with the siftDriver previously created
-      //no need to store the siftDriver: it is living as long as at least one of 
+      //no need to store the siftDriver: it is living as long as at least one of
       //his cube is present in the system
       for(Iterator<JsonElement> ite = cubesId.iterator(); ite.hasNext();){
         String one_cube_id = JsonProtocolHelper.assertString(ite.next());
@@ -53,7 +53,7 @@ public class SifteoAuthenticationProtocol implements SpecificAuthenticationProto
         if(!cb.callback(cube)){
           throw new UnSupportedDeviceType(cube.type+"##"+cube.id);
         }//else
-        System.out.println("callback successfully excecuted");
+//        System.out.println("callback successfully excecuted");
         //create a CommunicationProtocol for the cube and attach it!
         SifteoCommunicationProtocol cube_talk = new SifteoCommunicationProtocol(driver_talk,cube.id);
         cube.attachCommunication(cube_talk);
@@ -65,7 +65,7 @@ public class SifteoAuthenticationProtocol implements SpecificAuthenticationProto
     } catch (IOException ex) {
       Logger.getLogger(SifteoAuthenticationProtocol.class.getName()).log(Level.SEVERE, null, ex);
     }
-    
+
   }
-  
+
 }

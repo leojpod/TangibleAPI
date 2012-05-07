@@ -5,8 +5,6 @@ package restful.utils;
 
 
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import managers.ApplicationManager;
 import managers.ApplicationManagerAccess;
 
@@ -15,12 +13,12 @@ import managers.ApplicationManagerAccess;
  * @author leo
  */
 public abstract class ConditionalAccessResource extends JSONRestResource{
-  
+
   protected enum Condition{
     APP_REGISTERED("registred application required"),
     APP_RUNNING("running application required");
 //    VALID_UUID("the given app id is not a valid UUID");
-    
+
     private ApplicationManager mgr = ApplicationManagerAccess.getInstance();
     private String toStringName;
     Condition(String name){
@@ -31,8 +29,8 @@ public abstract class ConditionalAccessResource extends JSONRestResource{
     public String toString() {
       return toStringName;
     }
-    
-    
+
+
     protected boolean conditionMatches(String appUUID){
       switch(this){
         case APP_REGISTERED:
@@ -45,7 +43,7 @@ public abstract class ConditionalAccessResource extends JSONRestResource{
           throw new RuntimeException(new EnumConstantNotPresentException(Condition.class,"this enum is not a valid condition"));
       }
     }
-    
+
     private boolean isAppRegistered(String appUUID){
       return mgr.isAppRegistred(appUUID);
     }
@@ -60,15 +58,15 @@ public abstract class ConditionalAccessResource extends JSONRestResource{
 //        return false;
 //      }
 //    }
-    
+
   }
-  
+
   protected final UUID _appuuid;
 
   public ConditionalAccessResource(String strUUID,
       Condition[] conditions) throws UnauthorizedAccessException{
     super();
-    Logger.getLogger(ConditionalAccessResource.class.getName()).log(Level.INFO, "constructor starting");
+    //Logger.getLogger(ConditionalAccessResource.class.getName()).log(Level.INFO, "constructor starting");
     String finaluuid = null;
     if(strUUID != null){
       finaluuid = strUUID;
@@ -92,7 +90,7 @@ public abstract class ConditionalAccessResource extends JSONRestResource{
       }
     }
   }
-  
+
 //  public void assertConditions(String strUUID, String strAltUUID,
 //      Condition[] conditions) throws UnauthorizedAccessException{
 ////    Logger.getLogger(ConditionalAccessResource.class.getName()).log(Level.INFO, "constructor starting");
@@ -114,5 +112,5 @@ public abstract class ConditionalAccessResource extends JSONRestResource{
 //      }
 //    }
 //  }
-  
+
 }

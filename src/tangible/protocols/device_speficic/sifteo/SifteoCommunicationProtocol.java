@@ -15,7 +15,7 @@ import tangible.protocols.TangibleDeviceCommunicationProtocol;
 public class SifteoCommunicationProtocol
         implements TangibleDeviceCommunicationProtocol<SifteoCubeDevice> {
 
-  
+
   private SiftDriverCommunicationProtocol _driverTalk;
   private final String _cubeId;
   private final String[] _id_in_array;
@@ -34,14 +34,14 @@ public class SifteoCommunicationProtocol
 
   @Override
   public void showColor(int r, int g, int b) {
-    System.out.println("SifteoCommunicationProtocol: Show color -> _cubeId = " + _cubeId);
+//    System.out.println("SifteoCommunicationProtocol: Show color -> _cubeId = " + _cubeId);
     _driverTalk.showColor(r, g, b, _id_in_array);
   }
 
   @Override
   public void showColor(int color) {
 
-    System.out.println("SifteoCommunicationProtocol: Show color -> _cubeId = " + _cubeId);
+//    System.out.println("SifteoCommunicationProtocol: Show color -> _cubeId = " + _cubeId);
     _driverTalk.showColor(color, _id_in_array);
   }
 

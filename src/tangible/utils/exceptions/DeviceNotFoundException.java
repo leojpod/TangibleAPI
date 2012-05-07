@@ -3,23 +3,17 @@
  */
 package tangible.utils.exceptions;
 
+import commons.ApiException;
+import javax.ws.rs.core.Response;
+
 /**
  *
  * @author leo
  */
-public class DeviceNotFoundException extends RuntimeException {
+public class DeviceNotFoundException extends ApiException {
   private static final long serialVersionUID = 1L;
-  String id;
-  
-  public DeviceNotFoundException(String id) {
-    this.id = id;
-  }
 
-  @Override
-  public String getMessage() {
-    return "the id:("+id+") did not match any present device";
+  public DeviceNotFoundException(String id) {
+    super(Response.Status.CONFLICT, "the id:("+id+") did not match any present device");
   }
-  
-  
-  
 }

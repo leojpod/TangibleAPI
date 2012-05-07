@@ -46,7 +46,7 @@ public enum ReservationManagerAccess {
       addNewReservation(dev, app_id);
       _busyDevices.put(device_id,dev);
       //<FOR DEBUG>
-      System.out.println("Reservation made!!!");
+//      System.out.println("Reservation made!!!");
       dev.getTalk().showColor(0x00DA55);
       //</FOR DEBUG>
       return device_id;
@@ -71,7 +71,7 @@ public enum ReservationManagerAccess {
         throws UnsuccessfulReservationException {
       throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     private boolean isDeviceAvailable(String id){
       return _devFinder.existsDevice(id) && !_busyDevices.containsKey(id);
     }
@@ -86,13 +86,13 @@ public enum ReservationManagerAccess {
       //otherwise let's remove that from both the busy list and the reservation map!
       _reservations.get(app_id).remove(_busyDevices.remove(device_id));
       //<FOR DEBUG>
-      System.out.println("Reservation deleted!");
+//      System.out.println("Reservation deleted!");
       _devFinder.getDevice(device_id).getTalk().showColor(0xDA0000);
     }
 
     @Override
     public boolean isAReservation(String devID, UUID appUUID) {
-      return _reservations.containsKey(appUUID) 
+      return _reservations.containsKey(appUUID)
           && _reservations.get(appUUID).contains(_devFinder.getDevice(devID));
     }
   }
