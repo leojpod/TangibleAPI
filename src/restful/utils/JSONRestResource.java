@@ -26,14 +26,16 @@ public class JSONRestResource {
     private final Response.Status _status;
     private final boolean _isCtrl;
     private final String _msg;
-    public RestApiException(Response.Status status, boolean isCtrl, String msg) {
+    private final String _origin;
+    public RestApiException(String origin, Response.Status status, boolean isCtrl, String msg) {
       super(status);
       _status = status;
       _isCtrl = isCtrl;
       _msg = msg;
+      _origin = origin;
     }
-    public RestApiException(ApiException ex, boolean isCtrl){
-      this(ex.getStatus(),isCtrl,ex.getMessage());
+    public RestApiException(String origin, ApiException ex, boolean isCtrl){
+      this(origin, ex.getStatus(),isCtrl,ex.getMessage());
     }
 
     @Override
@@ -43,16 +45,49 @@ public class JSONRestResource {
 
     @Override
     public Response getResponse() {
-      return JSONRestResource.this.createJsonResponseMsg(getMessage(), _isCtrl, _status);
+      return JSONRestResource.this.createJsonResponseMsg(_origin, getMessage(), _isCtrl, _status);
     }
   }
 
   protected Gson _gson = new Gson();
-  protected String corsHeaders;
+  /*WARN : the two following fields (corsHeaders and currentOrigin) 
+   * are used in an ugly side-effect way this should be change (one day)
+   */
+  //protected String corsHeaders;
+  //protected String currentOrigin;
+  protected final String[] allowedOrigins = {
+    "http://localhost", 
+    "http://localhost/", 
+    "http://satin.codemill.se",  
+    "http://satin.codemill.se/", 
+    "http://satin.codemill.se:81",  
+    "http://satin.codemill.se:81/" };
 
-  protected Response makeCORS(String requestHeader) {
-    corsHeaders = requestHeader;
-    return Response.ok().header("Access-Control-Allow-Origin", "http://localhost").header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS").header("Access-Control-Allow-Headers", corsHeaders).build();
+  protected String assertOrigin(String origin){
+    String currentOrigin = null;
+    boolean notFound = true;
+    for(int i = 0; notFound && i < allowedOrigins.length ; i++){
+      notFound = !allowedOrigins[i].equalsIgnoreCase(origin);
+      if(!notFound){
+        currentOrigin = allowedOrigins[i];
+      }
+    }
+    if(notFound){
+      currentOrigin = allowedOrigins[0];
+      for(int i = 1; i < allowedOrigins.length; i++){
+        currentOrigin += " " + allowedOrigins[i];
+      }
+    }
+    return currentOrigin;
+  }
+  protected Response makeCORS(String requestHeader, String origin) {
+    String currentOrigin = assertOrigin(origin);
+    System.out.println("currentOrigin in an option answer -> "+currentOrigin);
+    return Response.ok()
+        .header("Access-Control-Allow-Origin", currentOrigin)
+        .header("Access-Control-Allow-Methods", 
+          "GET, POST, PUT, DELETE, OPTIONS")
+        .header("Access-Control-Allow-Headers", requestHeader).build();
   }
 
   protected String createJsonMsg(Object o, boolean isCtrl) {
@@ -70,28 +105,34 @@ public class JSONRestResource {
     return createJsonMsg(o, true);
   }
 
-  protected Response createJsonResponseMsg(Object o, boolean isCtrl, Status statusCode) {
-    return Response.status(statusCode).entity(createJsonMsg(o, isCtrl)).header("Access-Control-Allow-Origin", "http://localhost").header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS").header("Access-Control-Allow-Headers", corsHeaders).build();
+  protected Response createJsonResponseMsg(String origin, Object o, boolean isCtrl, Status statusCode) {
+    return Response.status(statusCode)
+        .entity(createJsonMsg(o, isCtrl))
+        .header("Access-Control-Allow-Origin", assertOrigin(origin))
+        .header("Access-Control-Allow-Methods",
+          "GET, POST, PUT, DELETE, OPTIONS")
+        //.header("Access-Control-Allow-Headers", corsHeaders)
+        .build();
   }
 
-  protected Response createJsonCtrlResponseMsg(Object o, Status statusCode) {
-    return createJsonResponseMsg(o, true, statusCode);
+  protected Response createJsonCtrlResponseMsg(String origin, Object o, Status statusCode) {
+    return createJsonResponseMsg(origin, o, true, statusCode);
   }
 
-  protected Response createMissingCompulsoryParamMsg(String field) {
-    return createErrorMsg("Missing a required parameter", field);
+  protected Response createMissingCompulsoryParamMsg(String origin, String field) {
+    return createErrorMsg(origin, "Missing a required parameter", field);
   }
 
-  protected Response createErrorMsg(String err_msg, String reason) {
+  protected Response createErrorMsg(String origin, String err_msg, String reason) {
     JsonObject err = new JsonObject();
     err.addProperty("err_msg", err_msg);
     err.addProperty("err_source", reason);
 
-    return createJsonCtrlResponseMsg(err, Status.BAD_REQUEST);
+    return createJsonCtrlResponseMsg(origin, err, Status.BAD_REQUEST);
     //TODO_LATER maybe move that status to the parameter to enable a specific status code to be set...
   }
 
-  protected Response createOKCtrlMsg() {
-    return createJsonCtrlResponseMsg("OK", Status.OK);
+  protected Response createOKCtrlMsg(String origin) {
+    return createJsonCtrlResponseMsg(origin, "OK", Status.OK);
   }
 }

@@ -4,7 +4,7 @@
 package managers;
 
 import commons.ApiException;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -38,7 +38,7 @@ public interface ReservationManager {
       throws UnsuccessfulReservationException;
   String reserveDeviceByType(String type, UUID app_id)
       throws UnsuccessfulReservationException;
-  List<String> reservedByAnApp(UUID app_id)
+  Set<String> reservedByAnApp(UUID app_id)
       throws UnsuccessfulReservationException;
 
   void endReservation(String device_id, UUID app_id) throws NoSuchReservationException;

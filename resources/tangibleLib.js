@@ -1,6 +1,8 @@
 /*  by /Leoj -- /Lekko -- /Lojeuv
  *
  */
+/*jslint devel: true*/
+/*global $ */
 
 // <editor-fold defaultstate="collapsed" desc="Basic methods">
 function tangibleREST(method, uri, params, onSuccess, onError, async) {
@@ -25,7 +27,7 @@ function tangibleREST(method, uri, params, onSuccess, onError, async) {
 	if (async !== undefined) {
 		ajaxParams.async = async;
 		if (async === false) {
-			console.log ('making an async call to : <<' + uri + '>>');
+			console.log('making an async call to : <<' + uri + '>>');
 		}
 	}
 	$.ajax(
@@ -244,3 +246,63 @@ function TangibleAPI() {
 	};
 }
 
+var tangibleComponent = function () {
+  "use strict";
+  var instance = (function () {
+    //private part
+    var api = new TangibleAPI(),
+      labeledDevices = [],
+      onReadyListener = [],
+      ready = false;
+
+    function setReady(bool) {
+      ready = bool;
+      if (ready) {
+        var listener;
+        while ((listener = onReadyListener.shift()) !== undefined) {
+          listener();
+        }
+      }
+    }
+    function initComponent() {
+      api.register("tangibleComponent",
+        "gateway application to allow SATIN components to use the API",
+        function () {
+          setReady(true);
+        },
+        function () {
+          console.log("impossible to register the tangibleComponent!");
+        });
+    }
+
+    return {//public part
+      useDevice : function (label, onUsable, onError, deviceProperties, async) {
+        if (!ready) {
+          onError({msg : "the tangibleComponent is not initialized!"});
+          return;
+        }
+        if (labeledDevices[label] !== undefined) {
+          onUsable(labeledDevices[label]);
+        } else {
+          if (deviceProperties === undefined) {
+            api.requestAnyDevice(function (data) {
+              labeledDevices[label] = data.msg;
+              onUsable(data.msg);
+            }, onError, async);
+          } else {
+            //TODO create a reservation based on the type of devices or on its capacity
+            console.log("specifying deviceProperties is not implemented yet!");
+          }
+        }
+      },
+      onReadyCallback: function (callbackWhenReady) {
+        onReadyListener.push(callbackWhenReady);
+      }
+    };
+  }());
+
+  tangibleComponent = function () {
+    return instance;
+  };
+  return tangibleComponent();
+};

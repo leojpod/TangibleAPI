@@ -67,9 +67,13 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public List<String> reservedByAnApp(UUID app_id)
+    public Set<String> reservedByAnApp(UUID app_id)
         throws UnsuccessfulReservationException {
-      throw new UnsupportedOperationException("Not supported yet.");
+      Set<String> devIds = new HashSet<String>();
+      for(TangibleDevice dev : _reservations.get(app_id)){
+        devIds.add(dev.id);
+      }
+      return devIds;
     }
 
     private boolean isDeviceAvailable(String id){

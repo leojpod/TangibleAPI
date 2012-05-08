@@ -19,41 +19,47 @@ public class RestApp extends JSONRestResource{
   ApplicationManager app = ApplicationManagerAccess.getInstance();
 
   @GET
-  public Response getAppListing(){
+  public Response getAppListing(
+          @HeaderParam("Origin") String origin){
     //just a dummy method supposed to return all the application currently running on the devices
 
-    return createJsonCtrlResponseMsg("you cannot see the list 'cause I don't want you to do so!", Response.Status.FORBIDDEN);
+    return createJsonCtrlResponseMsg(origin, "you cannot see the list 'cause I don't want you to do so!", Response.Status.FORBIDDEN);
   }
 
   @OPTIONS @Path("/registration/")
-  public Response registerApplication(
-          @HeaderParam("Access-Control-Request-Headers") String requestH){
-    return makeCORS(requestH);
+  public Response registerApplicationCORS(
+          @HeaderParam("Access-Control-Request-Headers") String requestH,
+          @HeaderParam("Origin") String origin){
+    return makeCORS(requestH, origin);
   }
 
   @PUT @Path("/registration/")
   public Response registerApplication(
       @FormParam("appname") String name,
-      @FormParam("description") String description){
+      @FormParam("description") String description,
+      @HeaderParam("Origin") String origin){
     //TODO_LATER check that the request sender has the right to ask for that!
     System.out.println("registration: \n"
         + "appname : "+name+"\n"
         + "description: "+description);
 
-    return createJsonCtrlResponseMsg(app.registerApp(name,description), Status.OK);
+    return createJsonCtrlResponseMsg(origin, app.registerApp(name,description), Status.OK);
   }
 
 
   @OPTIONS @Path("/registration/{appUUID}")
   public Response removeApplicationOption(
-          @HeaderParam("Access-Control-Request-Headers") String requestH){
-    return makeCORS(requestH);
+          @HeaderParam("Access-Control-Request-Headers") String requestH,
+          @HeaderParam("Origin") String origin){
+    return makeCORS(requestH, origin);
   }
 
   @DELETE @Path("/registration/{appUUID}")
-  public Response removeApplication(@PathParam("appUUID") String uuid){
+  public Response removeApplication(@PathParam("appUUID") String uuid,
+          @HeaderParam("Origin") String origin){
     //TODO_LATER error handling!
     System.out.println("unregistration: "+uuid);
-    return createJsonCtrlResponseMsg(app.removeApplication(uuid), Status.OK);
+    Response resp = createJsonCtrlResponseMsg(origin, app.removeApplication(uuid), Status.OK);
+    return resp;
   }
 }

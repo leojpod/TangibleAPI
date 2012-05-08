@@ -4,8 +4,8 @@
 package managers;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -40,7 +40,7 @@ public enum ApplicationManagerAccess implements SingletonAccessor<ApplicationMan
       UUID appId = UUID.fromString(uuid);
       if (_apps.containsKey(appId)) {
         ReservationManager mgr = ReservationManagerAccess.getInstance();
-        List<String> reservedDevices = mgr.reservedByAnApp(appId);
+        Set<String> reservedDevices = mgr.reservedByAnApp(appId);
         for (String dev : reservedDevices) {
           mgr.endReservation(dev, appId);
         }

@@ -57,7 +57,8 @@ public class TangibleAPI {
     ResourceConfig rc = new PackagesResourceConfig("restful");
 
     HttpServer server = GrizzlyServerFactory.createHttpServer(BASE_URI, rc);
-    server.getServerConfiguration().addHttpHandler(new StaticHttpHandler("resources\\"), "/resources");
+//    server.getServerConfiguration().addHttpHandler(new StaticHttpHandler("resources\\"), "/resources");
+    server.getServerConfiguration().addHttpHandler(new StaticHttpHandler("resources"), "/resources");
 
     return server;
   }
