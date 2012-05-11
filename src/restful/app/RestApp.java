@@ -3,6 +3,7 @@
  */
 package restful.app;
 
+import commons.ApiException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -59,7 +60,10 @@ public class RestApp extends JSONRestResource{
           @HeaderParam("Origin") String origin){
     //TODO_LATER error handling!
     System.out.println("unregistration: "+uuid);
-    Response resp = createJsonCtrlResponseMsg(origin, app.removeApplication(uuid), Status.OK);
-    return resp;
+    try{
+			return createJsonCtrlResponseMsg(origin, app.removeApplication(uuid), Status.OK);
+		} catch (ApiException e){
+			return createErrorMsg(origin, e);
+		}
   }
 }

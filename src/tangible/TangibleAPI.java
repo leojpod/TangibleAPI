@@ -10,8 +10,7 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.UriBuilder;
-import managers.DeviceFinder;
-import managers.DeviceFinderAccess;
+import managers.*;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.StaticHttpHandler;
 
@@ -22,11 +21,16 @@ import org.glassfish.grizzly.http.server.StaticHttpHandler;
 public class TangibleAPI {
 
   /**
-   * @param args the command line arguments
+	 * @param args the command line arguments
+	 * @throws IOException  
    */
   public static void main(String[] args) throws IOException {
     DeviceFinder finder = DeviceFinderAccess.getInstance();
-    finder.start();
+		finder.start();
+		//let's initialise all the singleton to avoid delay error later on.. 
+		ApplicationManagerAccess.getInstance();
+		ReservationManagerAccess.getInstance();
+		SubscriptionManagerAccess.getInstance();
 //    System.out.println("DeviceFinder is started!");
 
     //let's start the REST part
@@ -34,7 +38,7 @@ public class TangibleAPI {
 //    System.out.println("the Rest Server is started!");
 //    System.out.println("the communication is now working with the outside world!");
 
-
+		
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     System.out.println("Press enter to shut down the TangibleAPI daemon");
     try {

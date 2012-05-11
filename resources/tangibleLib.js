@@ -2,7 +2,7 @@
  *
  */
 /*jslint devel: true*/
-/*global $ */
+/*global $, window, WebSocket */
 
 // <editor-fold defaultstate="collapsed" desc="Basic methods">
 function tangibleREST(method, uri, params, onSuccess, onError, async) {
@@ -27,7 +27,7 @@ function tangibleREST(method, uri, params, onSuccess, onError, async) {
 	if (async !== undefined) {
 		ajaxParams.async = async;
 		if (async === false) {
-			console.log('making an async call to : <<' + uri + '>>');
+			console.log('making a sync call to : <<' + uri + '>>');
 		}
 	}
 	$.ajax(
@@ -91,6 +91,13 @@ function showColor(appUUID, devId, color, onSuccess, onError, async) {
 	var uri = appUUID + "/device_methods/" + devId + "/show_color/";
 	tangiblePUT(uri, {
 		color : color
+	}, onSuccess, onError, async);
+}
+function subscribeToEvents(appUUID, devId, onSuccess, onError, async) {
+	'use strict';
+	var uri = appUUID + "/device_methods/" + devId + "/subscribe";
+	tangiblePUT(uri, {
+		sock_type : 'ws'
 	}, onSuccess, onError, async);
 }
 //TODO add the suppport for picture and events
@@ -235,6 +242,18 @@ function TangibleAPI() {
 				}, async);
 		}
 	};
+	this.subscribeToEvents = function (devId, onSuccess, onError, async) {
+		if (appUUID === null) {
+			onError({
+				msg : 'application not registered'
+			});
+		} else {
+			var uri = appUUID + "/device_methods/" + devId + "/subscribe";
+			tangiblePUT(uri, {
+				sock_type : 'ws'
+			}, onSuccess, onError, async);
+		}
+	};
 	this.getDeviceId = function (number) {
 		return reservedDevices[number - 1].id;
 	};
@@ -246,63 +265,206 @@ function TangibleAPI() {
 	};
 }
 
+function SubscriptionMgr() {
+	'use strict';
+	var wsStream, listenerDict = [];
+
+	function filterEvents(rcvEvt) {
+//		console.log('about to filter:' + rcvEvt.data);
+		var jsonMsg = $.parseJSON(rcvEvt.data), devId, eventType, params, idx;
+		if (jsonMsg.flow !== 'event') {
+			console.log("we recevied a non-event message, and ignored it");
+			return;
+		}
+		if (jsonMsg.msg === undefined) {
+			console.log('no message in the received event, let\'s ignore it');
+			return;
+		}
+		if (jsonMsg.msg.devId !== undefined &&
+				jsonMsg.msg.event !== undefined) {
+			devId = jsonMsg.msg.devId;
+			eventType = jsonMsg.msg.event;
+		} else {
+			console.log('missing a required field, let\'s ignore the message');
+			return;
+		}
+		if (jsonMsg.msg.params !== undefined) {
+			params = jsonMsg.msg.params;
+		}
+		if (listenerDict[devId] !== undefined) {
+			//there might be someone waiting for an event on this device!
+			if (listenerDict[devId][eventType] !== undefined) {
+				//there is actually some people waiting for this message!
+				for (idx = 0; idx < listenerDict[devId][eventType].length; idx += 1) {
+					listenerDict[devId][eventType][idx](params);
+				}
+			}
+		}
+		//and that should be it... 
+	}
+
+	this.init = function (appUUID, uri) {
+		wsStream = new WebSocket(uri);
+		wsStream.onopen = function (evt) {
+			console.log('websocket is now open' + evt.data);
+			wsStream.send(JSON.stringify({'flow': 'ctrl', 'msg' : appUUID}));
+//			wsStream.send({'flow': 'ctrl', 'msg' : appUUID});
+		};
+		wsStream.onmessage = filterEvents;
+		console.log('SubscriptionMgr.init completed!');
+	};
+
+	this.addListener = function (onEvent, eventType, devId) {
+		console.log('SubscriptionMgr.addListener starting');
+		if (listenerDict[devId] === undefined) {
+			listenerDict[devId] = [];
+			listenerDict[devId][eventType] = [];
+		} else if (listenerDict[devId][eventType] === undefined) {
+			listenerDict[devId][eventType] = [];
+		}
+		listenerDict[devId][eventType].push(onEvent);
+		console.log('SubscriptionMgr.addListener completed');
+	};
+
+	this.close = function () {
+		wsStream.close();
+		wsStream = undefined;
+	};
+	this.isInitialized = function () {
+		return wsStream !== undefined;
+	};
+}
+
+
 var tangibleComponent = function () {
-  "use strict";
-  var instance = (function () {
-    //private part
-    var api = new TangibleAPI(),
-      labeledDevices = [],
-      onReadyListener = [],
-      ready = false;
+	"use strict";
+	var instance = (function () {
+		//private part
+		var api = new TangibleAPI(),
+			labeledDevices = [],
+			comingSoonDevices = [],
+			onReadyListener = [],
+			streamSubs = new SubscriptionMgr(),
+			ready = false;
 
-    function setReady(bool) {
-      ready = bool;
-      if (ready) {
-        var listener;
-        while ((listener = onReadyListener.shift()) !== undefined) {
-          listener();
-        }
-      }
-    }
-    function initComponent() {
-      api.register("tangibleComponent",
-        "gateway application to allow SATIN components to use the API",
-        function () {
-          setReady(true);
-        },
-        function () {
-          console.log("impossible to register the tangibleComponent!");
-        });
-    }
+		function setReady(bool) {
+			ready = bool;
+			if (ready) {
+				var listener;
+				while ((listener = onReadyListener.shift()) !== undefined) {
+					listener();
+				}
+			}
+		}
+		function initComponent() {
+			api.register("tangibleComponent",
+				"gateway application to allow SATIN components to use the API",
+				function () {
+					$(window).bind('beforeunload', function () {
+						api.unregister(
+							function () {
+								console.log("the tangibleComponet quit properly");
+							},
+							function (data) {
+								console.log("couldn't quit properly : " + data.msg);
+							},
+							false
+						);
+					});
+					setReady(true);
+				},
+				function () {
+					console.log("impossible to register the tangibleComponent!");
+				});
+		}
+		initComponent();
 
-    return {//public part
-      useDevice : function (label, onUsable, onError, deviceProperties, async) {
-        if (!ready) {
-          onError({msg : "the tangibleComponent is not initialized!"});
-          return;
-        }
-        if (labeledDevices[label] !== undefined) {
-          onUsable(labeledDevices[label]);
-        } else {
-          if (deviceProperties === undefined) {
-            api.requestAnyDevice(function (data) {
-              labeledDevices[label] = data.msg;
-              onUsable(data.msg);
-            }, onError, async);
-          } else {
-            //TODO create a reservation based on the type of devices or on its capacity
-            console.log("specifying deviceProperties is not implemented yet!");
-          }
-        }
-      },
-      onReadyCallback: function (callbackWhenReady) {
-        onReadyListener.push(callbackWhenReady);
-      }
-    };
-  }());
+		return {//public part
+			useDevice : function (label, onUsable, onError, deviceProperties, async) {
+				if (!ready) {
+					onError({
+						msg : "the tangibleComponent is not initialized!"
+					});
+					return;
+				}
+				var listener, dev, list = '';
+				for (dev in labeledDevices) {
+					if (labeledDevices.hasOwnProperty(dev)) {
+						list += dev + ' -> ' + labeledDevices[dev] + '   ';
+					}
+				}
+				console.log("labeledDevices has the following entries : " + list);
+				if (labeledDevices[label] !== undefined) {
+					onUsable(labeledDevices[label]);
+				} else if (comingSoonDevices[label] !== undefined) {
+					//the device is being required, let's just wait for it
+					comingSoonDevices[label].push(onUsable);
+				} else {
+					if (deviceProperties === undefined) {
+						//first as we are going to get the device let's warn the other
+						comingSoonDevices[label] = [];
+						//that should do it...
+						//now let's make the reservation :
+						api.requestAnyDevice(function (data) {
+							labeledDevices[label] = data.msg;
+							console.log('new added element ' + labeledDevices[label]);
+							onUsable(data.msg);
+							//we have the device, it's time to wake up the potential others
+							if (comingSoonDevices[label] !== undefined) {
+								while ((listener = comingSoonDevices[label].shift()) !== undefined) {
+									listener(labeledDevices[label]);
+								}
+								//they should all know which device to use by now...
+								//thus, we can reset the comingSoonDevice[label]
+								comingSoonDevices[label] = undefined;
+							}
+						}, onError,
+							async
+						//false
+							);
+					} else {
+						//TODO create a reservation based on the type of devices or on its capacity
+						console.log("specifying deviceProperties is not implemented yet!");
+					}
+				}
+			},
+			onReadyCallback: function (callbackWhenReady) {
+				onReadyListener.push(callbackWhenReady);
+			},
+			getAPI: function () {
+				return api;
+			},
+			isReady: function () {
+				return ready;
+			},
+			subscribeToEvent: function (devId, eventType, onEvent, onError) {
+				api.subscribeToEvents(devId,
+					function (data) {
+						console.log('subscription to event succesfully made');
+						streamSubs.addListener(onEvent, eventType, devId);
+						if (!streamSubs.isInitialized()) {
+							console.log('SubscriptionMgr not initialized yet');
+							var uri = 'ws://localhost:' + data.msg.port + '/streaming';
+							console.log('trying to reach the following uri ' + uri);
+							streamSubs.init(api.getAppUUID(), uri);
+						}
+					}, onError);
+			}
+		};
+	}());
 
-  tangibleComponent = function () {
-    return instance;
-  };
-  return tangibleComponent();
+	tangibleComponent = function () {
+		return instance;
+	};
+	return tangibleComponent();
 };
+
+function onErrorMaker(msg) {
+	'use strict';
+	if (msg === undefined) {
+		msg = 'something went wrong: ';
+	}
+	return function (data) {
+		console.log(msg + data.msg);
+	};
+}

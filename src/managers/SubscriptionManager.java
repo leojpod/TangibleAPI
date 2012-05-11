@@ -7,7 +7,7 @@ import commons.ApiException;
 import java.io.IOException;
 import java.util.UUID;
 import javax.ws.rs.core.Response;
-import restful.streaming.StreamingThread;
+import restful.streaming.AbstractStreamingThread;
 import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
@@ -34,14 +34,24 @@ public interface SubscriptionManager {
       this(appuuid.toString());
     }
   }
+	public enum StreamingThreadType {
+		TCP_SOCKET, WEB_SOCKET;
+	}
 
   boolean existsStreaming(UUID appuuid);
-  StreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket;
-  StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket,IOException;
+  AbstractStreamingThread getStreamingSocket(UUID appuuid) 
+			throws NoSuchSocket;
+  AbstractStreamingThread createStreamingSocket(UUID appuuid, StreamingThreadType type) 
+			throws AlreadyExistingSocket,IOException;
 
-  void addEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket, DeviceNotFoundException;
-  void removeEventSubscription(UUID appuuid, String device, String[] events) throws NoSuchSocket, DeviceNotFoundException;
-  void addEventsSubscription(UUID appuuid, String device) throws NoSuchSocket, DeviceNotFoundException;
-  void removeEventsSubscription(UUID appuuid, String device) throws NoSuchSocket, DeviceNotFoundException;
-
+  void addEventSubscription(UUID appuuid, String device, String[] events) 
+			throws NoSuchSocket, DeviceNotFoundException;
+  void removeEventSubscription(UUID appuuid, String device, String[] events) 
+			throws NoSuchSocket, DeviceNotFoundException;
+  void addEventsSubscription(UUID appuuid, String device) 
+			throws NoSuchSocket, DeviceNotFoundException;
+  void removeEventsSubscription(UUID appuuid, String device) 
+			throws NoSuchSocket, DeviceNotFoundException;
+	public int getTcpPort();
+	public int getWsPort();
 }

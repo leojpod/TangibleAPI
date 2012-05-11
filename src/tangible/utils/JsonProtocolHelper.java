@@ -124,16 +124,32 @@ public class JsonProtocolHelper {
   }
   
   public static JsonElement assertCtrlMsg(JsonElement elm){
-    throw new UnsupportedOperationException("Not implemented yet");
+		return assertMsg(elm, "ctrl");
   }
   public static JsonElement assertEventMsg(JsonElement elm){
-    throw new UnsupportedOperationException("Not implemented yet");
+    return assertMsg(elm, "event");
   }
+	public static JsonElement assertMsg(JsonElement elm, String flowValue){
+		JsonObject obj = assertObject(elm);
+		String flow = assertStringInObject(obj, "flow");
+		if(!flow.equals(flowValue)){
+			throw new WrongProtocolJsonSyntaxException("the flow value is not the "
+					+ "excpected one: "+flow+" instead of "+flowValue);
+		}
+		JsonElement msg = assertField(obj, "msg");
+		return msg;
+	}
   
-  public static JsonObject createCtrlMsg(JsonObject msg){
-    JsonObject obj = new JsonObject();
-    obj.addProperty("flow", "ctrl");
+  public static JsonObject createCtrlMsg(JsonElement msg){
+    return createMsg(msg, "ctrl");
+  }
+  public static JsonObject createEventMsg(JsonElement msg){
+    return createMsg(msg, "event");
+  }
+	public static JsonObject createMsg(JsonElement msg, String flow){
+		JsonObject obj = new JsonObject();
+    obj.addProperty("flow", flow);
     obj.add("msg", msg);
     return obj;
-  }
+	}
 }

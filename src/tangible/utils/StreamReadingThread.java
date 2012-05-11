@@ -7,6 +7,7 @@ import java.io.Reader;
 
 /**
  *
+ * @param <T> 
  * @author leo
  */
 public abstract class StreamReadingThread<T extends Reader> extends AbsLoopingThread{

@@ -18,7 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import restful.streaming.StreamingThread;
+import restful.streaming.AbstractStreamingThread;
 import tangible.devices.SifteoCubeDevice;
 import tangible.gateway.SiftDriver;
 import tangible.protocols.AbsJsonTCPProtocol;
@@ -131,18 +131,18 @@ public class SiftDriverCommunicationProtocol
 
   private final class StreamingThreadReporter implements JsonEventListener{
 
-    private StreamingThread _th;
+    private AbstractStreamingThread _th;
     //TODO_LATER store a list of events to which we subscribed plus a special
     //    boolean to know when we are reporting everything (hence efficiency)
     public List<String> _followedDevices;
 
-    public StreamingThreadReporter(StreamingThread th) {
+    public StreamingThreadReporter(AbstractStreamingThread th) {
       this._th = th;
       _followedDevices = new ArrayList<String>();
     }
 
 
-    public StreamingThreadReporter(StreamingThread th, String[] devId) {
+    public StreamingThreadReporter(AbstractStreamingThread th, String[] devId) {
       this(th);
       this.addDevices(devId);
     }
@@ -229,7 +229,7 @@ public class SiftDriverCommunicationProtocol
   }
 
   @Override
-  public void addAllEventsNotification(StreamingThread sTh, String[] devs) {
+  public void addAllEventsNotification(AbstractStreamingThread sTh, String[] devs) {
     StreamingThreadReporter aReporter = new StreamingThreadReporter(sTh, devs);
     this._reporters.add(aReporter);
     this._readingThread.addEventListener(aReporter);
@@ -242,7 +242,7 @@ public class SiftDriverCommunicationProtocol
   }
 
   @Override
-  public void addAllEventsNotification(StreamingThread sTh, SifteoCubeDevice[] devs) {
+  public void addAllEventsNotification(AbstractStreamingThread sTh, SifteoCubeDevice[] devs) {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 

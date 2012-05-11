@@ -21,12 +21,13 @@ public abstract class AbsJsonTCPProtocol extends AbsTCPProtocol{
     }
     
     protected void sendJSON(Object o){
-      gson.toJson(o, this.getOutput());
+      System.out.println("sending an object via Gson encoding");
+			gson.toJson(o, this.getOutput());
       this.getOutput().flush();
     }
     protected void sendJSON(JsonElement elm){
       //System.out.println("sending a jsonElement directly");
-      //System.out.println("the JsonElement looks like that: "+elm.toString());
+      System.out.println("the JsonElement looks like that: "+elm.toString());
       gson.toJson(elm, this.getOutput());
       this.getOutput().flush();
     }

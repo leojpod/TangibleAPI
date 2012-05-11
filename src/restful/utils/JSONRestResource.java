@@ -131,6 +131,12 @@ public class JSONRestResource {
     return createJsonCtrlResponseMsg(origin, err, Status.BAD_REQUEST);
     //TODO_LATER maybe move that status to the parameter to enable a specific status code to be set...
   }
+	protected Response createErrorMsg(String origin, ApiException e) {
+    JsonObject err = new JsonObject();
+    err.addProperty("err_msg", e._msg);
+
+    return createJsonCtrlResponseMsg(origin, err, e._status);
+  }
 
   protected Response createOKCtrlMsg(String origin) {
     return createJsonCtrlResponseMsg(origin, "OK", Status.OK);

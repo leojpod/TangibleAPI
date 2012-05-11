@@ -4,10 +4,11 @@
 package managers;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
-import restful.streaming.StreamingThread;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import restful.streaming.AbstractStreamingThread;
+import restful.streaming.StreamingHolder;
 import tangible.devices.TangibleDevice;
 import tangible.protocols.TangibleDeviceCommunicationProtocol;
 import tangible.utils.exceptions.DeviceNotFoundException;
@@ -19,10 +20,16 @@ import tangible.utils.exceptions.DeviceNotFoundException;
 public enum SubscriptionManagerAccess {
 
   INSTANCE;
+
+	
   private SubscriptionManager _singleton;
 
   private SubscriptionManagerAccess() {
-    _singleton = new SubscriptionManagerImpl();
+		try {
+			_singleton = new SubscriptionManagerImpl();
+		} catch (IOException ex) {
+			Logger.getLogger(SubscriptionManagerAccess.class.getName()).log(Level.SEVERE, null, ex);
+		}
   }
 
   public static SubscriptionManager getInstance() {
@@ -31,37 +38,49 @@ public enum SubscriptionManagerAccess {
 
   private class SubscriptionManagerImpl implements SubscriptionManager {
     
-    private Map<UUID, StreamingThread> _subsSockets;
+	
+    private StreamingHolder _streams;
+		//TODO add the database so we can have a better control and add filtering
     private DeviceFinder _devMgr = DeviceFinderAccess.getInstance();
+		
     
-    private SubscriptionManagerImpl() {
-      _subsSockets = new HashMap<UUID, StreamingThread>();
+    private SubscriptionManagerImpl() throws IOException {
+      _streams = new StreamingHolder();
+			System.out.println("SubscriptionManagerImpl constructor done");
     }
 
     @Override
     public boolean existsStreaming(UUID appuuid) {
-      return _subsSockets.containsKey(appuuid);
+      return _streams.existsStreaming(appuuid);
     }
 
     @Override
-    public StreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket {
+    public AbstractStreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket {
       if(!existsStreaming(appuuid)){
         throw new NoSuchSocket(appuuid.toString());
       }
       //else
-      return _subsSockets.get(appuuid);
+      return _streams.getStreamingSocket(appuuid);
     }
 
     @Override
-    public StreamingThread createStreamingSocket(UUID appuuid) throws AlreadyExistingSocket,IOException {
-      StreamingThread newSocket;
+    public AbstractStreamingThread createStreamingSocket(UUID appuuid, StreamingThreadType type) throws AlreadyExistingSocket,IOException {
+			System.out.println("createStreamingSocket");
+      AbstractStreamingThread newSocket;
       if(existsStreaming(appuuid)){
         throw new AlreadyExistingSocket(appuuid.toString());
       }
       //else
-      newSocket = new StreamingThread();
-      newSocket.start();
-      _subsSockets.put(appuuid, newSocket);
+			switch (type) {
+				case TCP_SOCKET:
+					newSocket = _streams.createTcpStream(appuuid);
+					break;
+				case WEB_SOCKET:
+					newSocket = _streams.createWsStream(appuuid);
+					break;
+				default:
+					throw new AssertionError();
+			}
       return newSocket;
     }
 
@@ -85,12 +104,22 @@ public enum SubscriptionManagerAccess {
       //NOTE: we assume that the device exists and that the application is associated to it
       TangibleDevice dev = _devMgr.getDevice(device);
       TangibleDeviceCommunicationProtocol<? extends TangibleDevice> talk = dev.getTalk();
-      talk.addAllEventsNotification(_subsSockets.get(appuuid));
+      talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
     }
 
     @Override
     public void removeEventsSubscription(UUID appuuid, String device) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
+
+		@Override
+		public int getTcpPort() {
+			return _streams.getTcpPort();
+		}
+
+		@Override
+		public int getWsPort() {
+			return _streams.getWsPort();
+		}
   }
 }

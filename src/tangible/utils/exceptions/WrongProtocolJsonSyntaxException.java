@@ -8,6 +8,7 @@ package tangible.utils.exceptions;
  * @author leo
  */
 public class WrongProtocolJsonSyntaxException extends WrongProtocolException{
+	private static final long serialVersionUID = 1L;
   public final String msg;
   public WrongProtocolJsonSyntaxException(String exception) {
     super("JSON_SYNTAX");

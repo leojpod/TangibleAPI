@@ -3,27 +3,39 @@
  */
 package restful.device;
 
-import com.google.gson.JsonObject;
-import commons.ApiException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import managers.DeviceFinder;
+import managers.DeviceFinderAccess;
+import managers.ReservationManager;
+import managers.ReservationManagerAccess;
+import managers.SubscriptionManager;
 import managers.SubscriptionManager.AlreadyExistingSocket;
-import managers.*;
-import restful.streaming.StreamingThread;
+import managers.SubscriptionManagerAccess;
 import restful.utils.ConditionalAccessResource;
 import restful.utils.UnauthorizedAccessException;
 import tangible.devices.TangibleDevice;
 import utils.ColorHelper;
+
+import com.google.gson.JsonObject;
+import commons.ApiException;
+import restful.streaming.AbstractStreamingThread;
 
 /**
  *
@@ -32,7 +44,9 @@ import utils.ColorHelper;
 @Path("/tangibleapi/{appuuid}/device_methods/{device_ID}")
 public class RestSpecificDevice extends ConditionalAccessResource {
 //public class RestSpecificDevice extends JSONRestResource {
-
+	
+	private static final Object synchronizer = new Object();
+	
   private DeviceFinder _finder = DeviceFinderAccess.getInstance();
   private ReservationManager _mgr = ReservationManagerAccess.getInstance();
   private SubscriptionManager _subs = SubscriptionManagerAccess.getInstance();
@@ -136,14 +150,14 @@ public class RestSpecificDevice extends ConditionalAccessResource {
           @HeaderParam("Origin") String origin) {
     System.out.println("show_picture on #"+devId);
     try {
-      Date startTime = new Date();
-      DateFormat format = DateFormat.getInstance();
+//      Date startTime = new Date();
+//      DateFormat format = DateFormat.getInstance();
 //      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Starting to process the showPicture command : time is -> {0}", format.format(startTime));
       ImageInputStream imgInput = ImageIO.createImageInputStream(input);
       BufferedImage image = ImageIO.read(imgInput);
       TangibleDevice dev = _finder.getDevice(devId);
       dev.getTalk().showPicture(image);
-      Date endTime = new Date();
+//      Date endTime = new Date();
 //      Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "Ending to process the showPicture command : time is -> {0}", format.format(endTime));
       return this.createOKCtrlMsg(origin);
     } catch (IOException ex) {
@@ -162,33 +176,44 @@ public class RestSpecificDevice extends ConditionalAccessResource {
   @Path("/subscribe")
   public Response addSubscription(
       @PathParam("device_ID") String devId //TODO_LATER add a filter here to register only some events
-      ,
+      , @FormParam("sock_type") String sockType,
           @HeaderParam("Origin") String origin) {
     System.out.println("subscription required for #"+devId);
     //check if there is already a streaming socket for this appuuid
-    StreamingThread sTh;
-    try{
-      if (_subs.existsStreaming(_appuuid)) {
-        sTh = _subs.getStreamingSocket(_appuuid);
-      } else {
-        try {
-          sTh = _subs.createStreamingSocket(_appuuid);
-        } catch (AlreadyExistingSocket ex) {
-          return new RestApiException(origin, ex, true).getResponse();
-        } catch (IOException ex) {
-          JsonObject msg = new JsonObject();
-          msg.addProperty("error", "streaming socket creation failed");
-          return createJsonCtrlResponseMsg(origin, msg, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-      }
-      //setup the subscription
-      _subs.addEventsSubscription(_appuuid, devId);
-      //send back the port
-      JsonObject obj = new JsonObject();
-      obj.addProperty("port", sTh.getPort());
-      return createJsonCtrlResponseMsg(origin, obj, Response.Status.OK);
-    }catch (ApiException ex){
-      return new RestApiException(origin, ex, true).getResponse();
-    }
+    synchronized (synchronizer) {			
+			AbstractStreamingThread sTh;
+			SubscriptionManager.StreamingThreadType type;
+			if (sockType != null && sockType.equals("ws")) {
+				type = SubscriptionManager.StreamingThreadType.WEB_SOCKET;
+			} else {
+				type = SubscriptionManager.StreamingThreadType.TCP_SOCKET;
+			}
+			try {
+				if (_subs.existsStreaming(_appuuid)) {
+					sTh = _subs.getStreamingSocket(_appuuid);
+				} else {
+					try {
+						sTh = _subs.createStreamingSocket(_appuuid, type);
+					} catch (AlreadyExistingSocket ex) {
+						return new RestApiException(origin, ex, true).getResponse();
+					} catch (IOException ex) {
+						JsonObject msg = new JsonObject();
+						msg.addProperty("error", "streaming socket creation failed");
+						return createJsonCtrlResponseMsg(origin, msg, Response.Status.INTERNAL_SERVER_ERROR);
+					}
+				}
+				//setup the subscription
+				_subs.addEventsSubscription(_appuuid, devId);
+				//send back the port
+				JsonObject obj = new JsonObject();
+				int port = (type.equals(SubscriptionManager.StreamingThreadType.WEB_SOCKET))
+						? _subs.getWsPort() : _subs.getTcpPort();
+				obj.addProperty("port", port);
+				return createJsonCtrlResponseMsg(origin, obj, Response.Status.OK);
+			} catch (ApiException ex) {
+				Logger.getLogger(RestSpecificDevice.class.getName()).log(Level.INFO, "", ex);
+				return new RestApiException(origin, ex, true).getResponse();
+			}
+		}
   }
 }

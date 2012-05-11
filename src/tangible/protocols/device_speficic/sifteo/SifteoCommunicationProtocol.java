@@ -4,7 +4,7 @@
 package tangible.protocols.device_speficic.sifteo;
 
 import java.awt.image.BufferedImage;
-import restful.streaming.StreamingThread;
+import restful.streaming.AbstractStreamingThread;
 import tangible.devices.SifteoCubeDevice;
 import tangible.protocols.TangibleDeviceCommunicationProtocol;
 
@@ -46,7 +46,7 @@ public class SifteoCommunicationProtocol
   }
 
   @Override
-  public void addAllEventsNotification(StreamingThread sTh) {
+  public void addAllEventsNotification(AbstractStreamingThread sTh) {
     _driverTalk.addAllEventsNotification(sTh, _id_in_array);
   }
 

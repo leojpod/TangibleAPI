@@ -3,13 +3,15 @@
  */
 package commons;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 /**
  *
  * @author LeoGS
  */
-public class ApiException extends RuntimeException{
+public class ApiException extends WebApplicationException{
+  private static final long serialVersionUID = 1L;
   public final Response.Status _status;
   public final String _msg;
   public ApiException(Response.Status status, String msg) {
@@ -25,5 +27,11 @@ public class ApiException extends RuntimeException{
     return _status;
   }
 
+	@Override
+	public Response getResponse() {
+		return Response.status(_status).entity(_status).build();
+	}
 
+	
+	
 }
