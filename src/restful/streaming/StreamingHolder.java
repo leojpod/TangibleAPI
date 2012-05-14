@@ -26,6 +26,7 @@ import tangible.utils.exceptions.WrongProtocolJsonSyntaxException;
  */
 public class StreamingHolder {
 
+
 	public static class WsStreamingSocket extends BaseWebSocketHandler {
 		private Map<UUID, Listener<WebSocketConnection>> _listeners;
 
@@ -142,4 +143,10 @@ public class StreamingHolder {
 		_appSockets.put(appuuid, newSocket);
 		return newSocket;
 	}
+	
+	public void stopASAP() throws IOException {
+		_webSockerServer.stop();
+		_tcpServer.close();
+	}
+
 }

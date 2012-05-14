@@ -121,5 +121,14 @@ public enum SubscriptionManagerAccess {
 		public int getWsPort() {
 			return _streams.getWsPort();
 		}
+
+		@Override
+		public void stopASAP() {
+			try {
+				_streams.stopASAP();
+			} catch (IOException ex) {
+				Logger.getLogger(SubscriptionManagerAccess.class.getName()).log(Level.SEVERE, "couldn't stop the TcpServer for streaming", ex);
+			}
+		}
   }
 }

@@ -54,4 +54,5 @@ public interface SubscriptionManager {
 			throws NoSuchSocket, DeviceNotFoundException;
 	public int getTcpPort();
 	public int getWsPort();
+	public void stopASAP();
 }

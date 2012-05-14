@@ -12,7 +12,6 @@ public abstract class AbsLoopingThread extends Thread implements LoopingThread {
   boolean _running;
 
   public AbsLoopingThread() {
-    this._running = true;
   }
   @Override
   public void stopASAP(){
@@ -21,6 +20,7 @@ public abstract class AbsLoopingThread extends Thread implements LoopingThread {
   
   @Override
   public final void run() {
+    this._running = true;
     this.runningSetup();
     while(_running){
       this.loopingProcess();
