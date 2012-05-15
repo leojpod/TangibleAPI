@@ -93,6 +93,13 @@ function showColor(appUUID, devId, color, onSuccess, onError, async) {
 		color : color
 	}, onSuccess, onError, async);
 }
+function showText(appUUID, devId, msg, onSuccess, onError, async) {
+	"use strict";
+	var uri = appUUID + "/device_methods/" + devId + "/text_message/";
+	tangiblePUT(uri, {
+		msg : msg
+	}, onSuccess, onError, async);
+}
 function subscribeToEvents(appUUID, devId, onSuccess, onError, async) {
 	'use strict';
 	var uri = appUUID + "/device_methods/" + devId + "/subscribe";
@@ -210,6 +217,18 @@ function TangibleAPI() {
 				}, onSuccess, onError, async);
 		}
 	};
+	this.showText = function (deviceId, text, onSuccess, onError, async) {
+		if (appUUID === null) {
+			onError({
+				msg : 'application not registered!'
+			});
+		} else {
+			tangiblePUT(appUUID + "/device_methods/" + deviceId + "/text_message",
+				{
+					msg : text
+				}, onSuccess, onError, async);
+		}
+	};
 	this.requestAnyDevice = function (onSuccess, onError, async) {
 		if (appUUID === null) {
 			onError({
@@ -232,7 +251,7 @@ function TangibleAPI() {
 			});
 		} else {
 			this.releaseDevice(reservedDevices.shift(),
-				function (data) {
+				function () {
 					this.releaseAllDevices(onSuccess, onError, async);
 				},
 				function (data) {

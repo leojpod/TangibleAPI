@@ -22,7 +22,9 @@ import utils.ColorHelper;
  * @author Nicklas Gavelin, nicklas.gavelin@gmail.com, Luleå University of
  * Technology
  */
-public class SpheroAPICommunicationProtocol extends AbsJsonTCPProtocol implements TangibleGatewayCommunicationProtocol<SpheroDevice>
+public class SpheroAPICommunicationProtocol 
+	extends AbsJsonTCPProtocol 
+	implements TangibleGatewayCommunicationProtocol<SpheroDevice>
 {
     private SpheroDriver _driver;
     private JsonMessageReadingThread _readingThread;
@@ -34,6 +36,7 @@ public class SpheroAPICommunicationProtocol extends AbsJsonTCPProtocol implement
         s.setSoTimeout( 0 );
         _driver = driver;
         _readingThread = new JsonMessageReadingThread( this.getInput() );
+				
     }
 
 
@@ -115,4 +118,9 @@ public class SpheroAPICommunicationProtocol extends AbsJsonTCPProtocol implement
     {
         throw new UnsupportedOperationException( "Is not supported on this kind of device." );
     }
+
+	@Override
+	public void showText(String msg, String[] _id_in_array) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

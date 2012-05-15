@@ -16,4 +16,5 @@ public interface TangibleGateway <Types  extends TangibleDevice> extends Collect
   public TangibleGatewayCommunicationProtocol<Types> getTalk();
   public String[] getDevicesId();
   public String getId();
+	//public void disconnect();
 }

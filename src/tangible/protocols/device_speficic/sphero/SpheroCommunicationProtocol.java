@@ -61,4 +61,9 @@ public class SpheroCommunicationProtocol implements TangibleDeviceCommunicationP
     {
         _driverTalk.addAllEventsNotification( sTh, _id_in_array );
     }
+
+	@Override
+	public void showText(String msg) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

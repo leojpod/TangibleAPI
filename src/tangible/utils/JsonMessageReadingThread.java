@@ -3,8 +3,8 @@
  */
 package tangible.utils;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonStreamParser;
 import java.io.BufferedReader;
@@ -28,22 +28,32 @@ public class JsonMessageReadingThread extends StreamReadingThread<BufferedReader
   private JsonStreamParser _parser;
   private List<JsonEventListener> _eventListener;
   private BlockingQueue<JsonObject> _ctrlQueue;
+	private Listener<Void> _streamOverListener;
 
   public JsonMessageReadingThread(BufferedReader reader) {
     super(reader);
     _parser = new JsonStreamParser(_reader);
     _eventListener = new ArrayList<JsonEventListener>();
     _ctrlQueue = new LinkedBlockingDeque<JsonObject>();
+		_streamOverListener = null;
   }
 
   @Override
   public void read() {
     //read one JsonElement and finish
-    if(!_parser.hasNext()){
-      Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "Nothing more to read!");
-      this._running = false;
-      return;
-    }
+		try{
+			if(!_parser.hasNext()){
+				Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "Nothing more to read!");
+				this._running = false;
+				this.handleStreamOver();
+				return;
+			}
+		} catch (JsonIOException e) {
+			System.out.println("This parse is over...");
+			this._running = false;
+			this.handleStreamOver();
+			return;
+		}
     JsonElement elm = _parser.next();
 //    Logger.getLogger(JsonMessageReadingThread.class.getName()).log(Level.INFO, "we received the elements: {0}", elm.toString());
     //TODO filter the event and control message and add them in their respective stack
@@ -95,6 +105,14 @@ public class JsonMessageReadingThread extends StreamReadingThread<BufferedReader
       jsonEventListener.callback(msg);
     }
   }
+	private void handleStreamOver(){
+		if(_streamOverListener != null){
+			this._streamOverListener.callback(null);
+		}
+	}
+	public void setStreamOverListener(Listener<Void> listener){
+		_streamOverListener = listener;
+	}
   public JsonObject readCtrlMessage() throws InterruptedException{
     return _ctrlQueue.poll(1, TimeUnit.DAYS);
   }

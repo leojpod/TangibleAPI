@@ -26,6 +26,7 @@ import tangible.protocols.TangibleGatewayCommunicationProtocol;
 import tangible.utils.JsonMessageReadingThread;
 import tangible.utils.JsonMessageReadingThread.JsonEventListener;
 import tangible.utils.JsonProtocolHelper;
+import tangible.utils.Listener;
 import tangible.utils.exceptions.WrongProtocolJsonSyntaxException;
 import utils.ColorHelper;
 import utils.ColorHelper.InvalidColorException;
@@ -37,8 +38,6 @@ import utils.ColorHelper.InvalidColorException;
 public class SiftDriverCommunicationProtocol
     extends AbsJsonTCPProtocol
     implements TangibleGatewayCommunicationProtocol<SifteoCubeDevice>{
-
-
 
   private class SifteoPicture {
     SifteoColorBlocks[] pictureBlocks;
@@ -187,6 +186,14 @@ public class SiftDriverCommunicationProtocol
     s.setSoTimeout(0);
     _driver = driver;
     _readingThread = new JsonMessageReadingThread(this.getInput());
+		_readingThread.setStreamOverListener(new Listener<Void>(){
+			@Override
+			public void callback(Void t) {
+				//TODO remove devices!
+				//Logger.getLogger(SiftDriverCommunicationProtocol.class.getName()).log(Level.INFO, "TODO: remove the devices that just disconnect from the device list!");
+				_driver.handleDisconnection();
+			}
+		});
     //_readingThread.start();
     _reporters = new ArrayList<StreamingThreadReporter>();
   }
@@ -350,5 +357,16 @@ public class SiftDriverCommunicationProtocol
     msg.add("params", params);
     this.sendJsonEventMsg(msg);
   }
+	
+	@Override
+	public void showText(String msg, String[] devs) {
+		JsonObject cmd = new JsonObject();
+    cmd.addProperty("command", "show_message");
+    JsonObject params = new JsonObject();
+    params.add("cubes", new Gson().toJsonTree(devs));
+		params.addProperty("text_msg", msg);
+    cmd.add("params", params);
+    this.sendJsonEventMsg(cmd);
+	}
 
 }

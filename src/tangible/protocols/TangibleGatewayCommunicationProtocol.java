@@ -23,4 +23,5 @@ public interface TangibleGatewayCommunicationProtocol<T extends TangibleDevice> 
   void addAllEventsNotification(AbstractStreamingThread sTh, T[] devs);
   void showPicture(BufferedImage img, String[] devs);
   void showPicture(BufferedImage img, T[] devs);
+	void showText(String msg, String[] devs);
 }

@@ -19,4 +19,6 @@ public interface TangibleDeviceCommunicationProtocol<T extends TangibleDevice>{
   public void showColor(int color);
   public void showPicture(BufferedImage img);
   public void addAllEventsNotification(AbstractStreamingThread sTh);
+
+	public void showText(String msg);
 }

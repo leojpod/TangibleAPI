@@ -15,6 +15,8 @@ import tangible.utils.exceptions.DeviceNotFoundException;
  */
 public interface DeviceFinder extends LoopingThread {
 
+	public void removeDevice(TangibleDevice dev);
+
   public static final class DeviceFinderProperties extends Properties{
     private static final long serialVersionUID = 1L;
     public enum Behaviour{

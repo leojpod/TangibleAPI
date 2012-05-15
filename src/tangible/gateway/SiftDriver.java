@@ -8,9 +8,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import managers.DeviceFinder;
+import managers.DeviceFinderAccess;
 import tangible.devices.SifteoCubeDevice;
-import tangible.protocols.device_speficic.sifteo.SiftDriverCommunicationProtocol;
+import tangible.devices.TangibleDevice;
 import tangible.protocols.TangibleGatewayCommunicationProtocol;
+import tangible.protocols.device_speficic.sifteo.SiftDriverCommunicationProtocol;
 
 /**
  *
@@ -43,8 +46,8 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
 
   public SiftDriver(String app_id, String driver_id) {
     this();
-    this._app_id = _app_id;
-    this._driver_id = _driver_id;
+    this._app_id = app_id;
+    this._driver_id = driver_id;
   }
   
   
@@ -133,4 +136,11 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
   public String getId() {
     return _driver_id;
   }
+	
+	public void handleDisconnection(){
+		DeviceFinder devMgr = DeviceFinderAccess.getInstance();
+		for(TangibleDevice dev : _devices){
+			devMgr.removeDevice(dev);
+		}
+	}
 }

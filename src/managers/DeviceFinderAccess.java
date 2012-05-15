@@ -148,7 +148,7 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
       //TODO add more property is needed
     }
 
-    @Override
+    @Override @Deprecated
     public String getProperty(String key) {
       return properties.getProperty(key);
     }
@@ -222,6 +222,12 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
     public DeviceFinderProperties getProperty() {
       return properties;
     }
+
+		@Override
+		public void removeDevice(TangibleDevice dev) {
+			//TODO Check that not everyone could call this method... 
+			_devices.remove(dev);
+		}
   }
 
   private DeviceFinder _finder;

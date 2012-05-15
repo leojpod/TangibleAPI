@@ -71,9 +71,12 @@
     nbproject/build-impl.xml file. 
 
     -->
-		<target name="-post-jar">
+		<target name="-pre-jar">
 			<copy todir="dist/resources" >
 				<fileset dir="resources"/>
 			</copy>
+<!--			<copy todir="dist/lib" >
+				<fileset dir="lib" />
+			</copy>-->
 		</target>
 </project>
