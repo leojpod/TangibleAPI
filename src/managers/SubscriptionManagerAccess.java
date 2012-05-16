@@ -39,7 +39,7 @@ public enum SubscriptionManagerAccess {
   private class SubscriptionManagerImpl implements SubscriptionManager {
     
 	
-    private StreamingHolder _streams;
+    private final StreamingHolder _streams;
 		//TODO add the database so we can have a better control and add filtering
     private DeviceFinder _devMgr = DeviceFinderAccess.getInstance();
 		
@@ -51,37 +51,43 @@ public enum SubscriptionManagerAccess {
 
     @Override
     public boolean existsStreaming(UUID appuuid) {
-      return _streams.existsStreaming(appuuid);
+			synchronized (_streams){
+	      return _streams.existsStreaming(appuuid);
+			}
     }
 
     @Override
     public AbstractStreamingThread getStreamingSocket(UUID appuuid) throws NoSuchSocket {
-      if(!existsStreaming(appuuid)){
-        throw new NoSuchSocket(appuuid.toString());
-      }
-      //else
-      return _streams.getStreamingSocket(appuuid);
+      synchronized (_streams){
+				if(!existsStreaming(appuuid)){
+					throw new NoSuchSocket(appuuid.toString());
+				}
+				//else
+				return _streams.getStreamingSocket(appuuid);
+			}
     }
 
     @Override
     public AbstractStreamingThread createStreamingSocket(UUID appuuid, StreamingThreadType type) throws AlreadyExistingSocket,IOException {
-			System.out.println("createStreamingSocket");
-      AbstractStreamingThread newSocket;
-      if(existsStreaming(appuuid)){
-        throw new AlreadyExistingSocket(appuuid.toString());
-      }
-      //else
-			switch (type) {
-				case TCP_SOCKET:
-					newSocket = _streams.createTcpStream(appuuid);
-					break;
-				case WEB_SOCKET:
-					newSocket = _streams.createWsStream(appuuid);
-					break;
-				default:
-					throw new AssertionError();
+			synchronized (_streams){
+				System.out.println("createStreamingSocket");
+				AbstractStreamingThread newSocket;
+				if(existsStreaming(appuuid)){
+					throw new AlreadyExistingSocket(appuuid.toString());
+				}
+				//else
+				switch (type) {
+					case TCP_SOCKET:
+						newSocket = _streams.createTcpStream(appuuid);
+						break;
+					case WEB_SOCKET:
+						newSocket = _streams.createWsStream(appuuid);
+						break;
+					default:
+						throw new AssertionError();
+				}
+				return newSocket;
 			}
-      return newSocket;
     }
 
     @Override
@@ -103,8 +109,10 @@ public enum SubscriptionManagerAccess {
       //find the device, get the talk, add a call back for all event messages
       //NOTE: we assume that the device exists and that the application is associated to it
       TangibleDevice dev = _devMgr.getDevice(device);
-      TangibleDeviceCommunicationProtocol<? extends TangibleDevice> talk = dev.getTalk();
-      talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
+      final TangibleDeviceCommunicationProtocol<? extends TangibleDevice> talk = dev.getTalk();
+      synchronized (talk){
+				talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
+			}
     }
 
     @Override

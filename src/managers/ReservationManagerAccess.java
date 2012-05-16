@@ -26,8 +26,8 @@ public enum ReservationManagerAccess {
   private static class ReservationManagerImpl
       implements ReservationManager {
 
-    private Map<UUID, Set<TangibleDevice>> _reservations;
-    private Map<String,TangibleDevice> _busyDevices;
+    private final Map<UUID, Set<TangibleDevice>> _reservations;
+    private final Map<String,TangibleDevice> _busyDevices;
     private DeviceFinder _devFinder = DeviceFinderAccess.getInstance();
 
     private ReservationManagerImpl() {
@@ -52,12 +52,14 @@ public enum ReservationManagerAccess {
       return device_id;
     }
     private void addNewReservation(TangibleDevice dev, UUID app_id){
-      if(!_reservations.containsKey(app_id)){
-        //create the set
-        _reservations.put(app_id, new HashSet<TangibleDevice>());
-      }
-      //get the good set and add the new reserved device
-      _reservations.get(app_id).add(dev);
+      synchronized (_reservations) {
+				if (!_reservations.containsKey(app_id)) {
+					//create the set
+					_reservations.put(app_id, new HashSet<TangibleDevice>());
+				}
+				//get the good set and add the new reserved device
+				_reservations.get(app_id).add(dev);
+			} 
     }
 
     @Override

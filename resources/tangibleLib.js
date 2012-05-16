@@ -3,7 +3,8 @@
  */
 /*jslint devel: true*/
 /*global $, window, WebSocket */
-
+//var api_ip_address = '130.240.94.8';
+var api_ip_address = 'localhost';
 // <editor-fold defaultstate="collapsed" desc="Basic methods">
 function tangibleREST(method, uri, params, onSuccess, onError, async) {
 	"use strict";
@@ -31,7 +32,7 @@ function tangibleREST(method, uri, params, onSuccess, onError, async) {
 		}
 	}
 	$.ajax(
-		"http://localhost:9998/tangibleapi/" + uri,
+		"http://" + api_ip_address + ":9998/tangibleapi/" + uri,
 		ajaxParams
 	);
 }
@@ -382,7 +383,7 @@ var tangibleComponent = function () {
 					$(window).bind('beforeunload', function () {
 						api.unregister(
 							function () {
-								console.log("the tangibleComponet quit properly");
+								console.log("the tangibleComponent quit properly");
 							},
 							function (data) {
 								console.log("couldn't quit properly : " + data.msg);
@@ -400,6 +401,7 @@ var tangibleComponent = function () {
 
 		return {//public part
 			useDevice : function (label, onUsable, onError, deviceProperties, async) {
+				console.log("the device " + label + "is required...");
 				if (!ready) {
 					onError({
 						msg : "the tangibleComponent is not initialized!"
@@ -407,27 +409,44 @@ var tangibleComponent = function () {
 					return;
 				}
 				var listener, dev, list = '';
-				for (dev in labeledDevices) {
-					if (labeledDevices.hasOwnProperty(dev)) {
-						list += dev + ' -> ' + labeledDevices[dev] + '   ';
-					}
-				}
-				console.log("labeledDevices has the following entries : " + list);
+
+				// <for debug code>
+//				if (labeledDevices.length !== 0) {
+//					for (dev in labeledDevices) {
+//						if (labeledDevices.hasOwnProperty(dev)) {
+//							list += dev + ' -> ' + labeledDevices[dev] + '   ';
+//						}
+//					}
+//					console.log("labeledDevices has the following entries : " + list);
+//				} else {
+//					console.log("There are no device reserved yet");
+//				}
+				// </for debug code>
+
+				//first, check is the device is already available
 				if (labeledDevices[label] !== undefined) {
+					//if it is well let's use it! right?
+					console.log("device already reserved");
 					onUsable(labeledDevices[label]);
 				} else if (comingSoonDevices[label] !== undefined) {
+					//2nd check: is the device already on its way?
 					//the device is being required, let's just wait for it
+					console.log("be patient your device is comming soon");
 					comingSoonDevices[label].push(onUsable);
 				} else {
+					//otherwise, let's reserve it: we are the first one to require this device.
 					if (deviceProperties === undefined) {
 						//first as we are going to get the device let's warn the other
 						comingSoonDevices[label] = [];
-						//that should do it...
+						//that should do it... : we created an array so that others can 
+						// push themselves on it (see 2nd check)
+
 						//now let's make the reservation :
 						api.requestAnyDevice(function (data) {
+							//the device is reserved now.
 							labeledDevices[label] = data.msg;
-							console.log('new added element ' + labeledDevices[label]);
-							onUsable(data.msg);
+							//console.log('new added element ' + labeledDevices[label]);
+							onUsable(data.msg);// we can warn the user and let him do his stuff with it
 							//we have the device, it's time to wake up the potential others
 							if (comingSoonDevices[label] !== undefined) {
 								while ((listener = comingSoonDevices[label].shift()) !== undefined) {
@@ -463,7 +482,7 @@ var tangibleComponent = function () {
 						streamSubs.addListener(onEvent, eventType, devId);
 						if (!streamSubs.isInitialized()) {
 							console.log('SubscriptionMgr not initialized yet');
-							var uri = 'ws://localhost:' + data.msg.port + '/streaming';
+							var uri = 'ws://' + api_ip_address + ':' + data.msg.port + '/streaming';
 							console.log('trying to reach the following uri ' + uri);
 							streamSubs.init(api.getAppUUID(), uri);
 						}

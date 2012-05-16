@@ -71,7 +71,8 @@ public class TangibleAPI {
   }
 
   private static URI getBaseURI() {
-    return UriBuilder.fromUri("http://localhost/").port(9998).build();
+//    return UriBuilder.fromUri("http://130.240.94.8/").port(9998).build();
+		return UriBuilder.fromUri("http://localhost/").port(9998).build();
   }
   public static final URI BASE_URI = getBaseURI();
   protected static HttpServer startServer() throws IOException {
