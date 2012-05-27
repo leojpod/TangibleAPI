@@ -21,7 +21,7 @@ import tangible.protocols.device_speficic.sifteo.SiftDriverCommunicationProtocol
  */
 public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
 
-  
+
   // <editor-fold defaultstate="collapsed" desc="json serializable fields">
   @SerializedName("appMgrId")
   private String _app_id;
@@ -34,9 +34,9 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
   @SerializedName("protocolVersion")
   private String _protocol_version;
   // </editor-fold>
-  
-  
-  
+
+
+
   private transient List<SifteoCubeDevice> _devices;
   private transient SiftDriverCommunicationProtocol _talk;
 
@@ -49,9 +49,9 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
     this._app_id = app_id;
     this._driver_id = driver_id;
   }
-  
-  
-  
+
+
+
   @Override
   public TangibleGatewayCommunicationProtocol<SifteoCubeDevice> getTalk() {
     return _talk;
@@ -66,7 +66,7 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
     }
     return ids;
   }
-  
+
   @Override
   public int size() {
     return _devices.size();
@@ -136,11 +136,15 @@ public class SiftDriver implements TangibleGateway<SifteoCubeDevice>{
   public String getId() {
     return _driver_id;
   }
-	
+
 	public void handleDisconnection(){
 		DeviceFinder devMgr = DeviceFinderAccess.getInstance();
 		for(TangibleDevice dev : _devices){
 			devMgr.removeDevice(dev);
 		}
+	}
+
+	public void attachCommunication(SiftDriverCommunicationProtocol driver_talk) {
+		_talk = driver_talk;
 	}
 }

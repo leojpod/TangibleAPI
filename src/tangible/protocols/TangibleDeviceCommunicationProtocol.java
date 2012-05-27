@@ -13,7 +13,7 @@ import tangible.devices.TangibleDevice;
  * @author leo
  */
 public interface TangibleDeviceCommunicationProtocol<T extends TangibleDevice>{
-  
+
   public boolean isConnected();
   public void showColor(int r, int g, int b);
   public void showColor(int color);
@@ -21,4 +21,7 @@ public interface TangibleDeviceCommunicationProtocol<T extends TangibleDevice>{
   public void addAllEventsNotification(AbstractStreamingThread sTh);
 
 	public void showText(String msg);
+	public void showText(String msg, int color);
+
+	public void fadeColor(int color);
 }

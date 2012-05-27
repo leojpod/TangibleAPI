@@ -13,7 +13,7 @@ import tangible.devices.TangibleDevice;
  * @author leo
  */
 public interface TangibleGatewayCommunicationProtocol<T extends TangibleDevice> {
-  
+
   boolean isConnected();
   void showColor(int r, int g, int b, String[] ids);
   void showColor(int r, int g, int b, T[] devs);
@@ -24,4 +24,6 @@ public interface TangibleGatewayCommunicationProtocol<T extends TangibleDevice> 
   void showPicture(BufferedImage img, String[] devs);
   void showPicture(BufferedImage img, T[] devs);
 	void showText(String msg, String[] devs);
+	void showText(String msg, int color, String[] devs);
+	void fadeColor(int color, String[] devs);
 }

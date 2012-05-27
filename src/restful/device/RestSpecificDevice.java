@@ -30,9 +30,9 @@ import utils.ColorHelper;
 @Path("/tangibleapi/{appuuid}/device_methods/{device_ID}")
 public class RestSpecificDevice extends ConditionalAccessResource {
 //public class RestSpecificDevice extends JSONRestResource {
-	
+
 	private static final Object synchronizer = new Object();
-	
+
   private DeviceFinder _finder = DeviceFinderAccess.getInstance();
   private ReservationManager _mgr = ReservationManagerAccess.getInstance();
   private SubscriptionManager _subs = SubscriptionManagerAccess.getInstance();
@@ -57,17 +57,26 @@ public class RestSpecificDevice extends ConditionalAccessResource {
   public Response showText(
       @PathParam("device_ID") String devID,
 			@FormParam("msg") String msg,
+			@FormParam("color") @DefaultValue("000000") String color,
 			@HeaderParam("Origin") String origin){
 		if (!_mgr.isAReservation(devID, _appuuid)) {
       return this.createErrorMsg(origin, "the device is not reserved by "
           + "the specified application!", "device: " + devID + " / app: " + _appuuid);
     }
+		Integer color_value = null;
+		try {
+      color_value = Integer.parseInt(color, 16);
+    } catch (NumberFormatException ex) {
+			return this.createMissingCompulsoryParamMsg(origin, "a color must be specified "
+            + "using the parameters r, g & b or color");
+    }
+
 		TangibleDevice dev = _finder.getDevice(devID);
     System.out.println("text_message on #"+devID);
-    dev.getTalk().showText(msg);
+    dev.getTalk().showText(msg, color_value);
     return this.createOKCtrlMsg(origin);
 	}
-	
+
   @OPTIONS @Path("/show_color")
   public Response showColorOptions(
           @HeaderParam("Access-Control-Request-Headers") String requestH,
@@ -172,6 +181,28 @@ public class RestSpecificDevice extends ConditionalAccessResource {
       return this.createErrorMsg(origin, "Could not procceed the picture", "something didn't work with the given picture");
     }
   }
+	@OPTIONS @Path("/fade_color")
+  public Response fadeColorOptions(
+          @HeaderParam("Access-Control-Request-Headers") String requestH,
+          @HeaderParam("Origin") String origin){
+    return makeCORS(requestH, origin);
+  }
+  @PUT @Path("/fade_color")
+  public Response fadeColor(
+			@PathParam("device_ID") String devId,
+			@FormParam("color") String color,
+          @HeaderParam("Origin") String origin) {
+		Integer color_value;
+		try{
+			color_value = Integer.parseInt(color, 16);
+		} catch (NumberFormatException ex) {
+			return this.createMissingCompulsoryParamMsg(origin, "a color must be specified "
+            + "using the parameters r, g & b or color");
+		}
+		TangibleDevice dev = _finder.getDevice(devId);
+		dev.getTalk().fadeColor(color_value);
+		return this.createOKCtrlMsg(origin);
+  }
 
   @OPTIONS @Path("/subscribe")
   public Response subscribeOptions(
@@ -187,7 +218,7 @@ public class RestSpecificDevice extends ConditionalAccessResource {
           @HeaderParam("Origin") String origin) {
     System.out.println("subscription required for #"+devId);
     //check if there is already a streaming socket for this appuuid
-    synchronized (synchronizer) {			
+    synchronized (synchronizer) {
 			AbstractStreamingThread sTh;
 			SubscriptionManager.StreamingThreadType type;
 			if (sockType != null && sockType.equals("ws")) {
