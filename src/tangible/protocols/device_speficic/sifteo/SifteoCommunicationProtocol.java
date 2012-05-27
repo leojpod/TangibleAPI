@@ -59,4 +59,14 @@ public class SifteoCommunicationProtocol
 	public void showText(String msg) {
 		_driverTalk.showText(msg, _id_in_array);
 	}
+
+	@Override
+	public void showText(String msg, int color) {
+		_driverTalk.showText(msg, color, _id_in_array);
+	}
+
+	@Override
+	public void fadeColor(int color) {
+		_driverTalk.fadeColor(color, _id_in_array);
+	}
 }

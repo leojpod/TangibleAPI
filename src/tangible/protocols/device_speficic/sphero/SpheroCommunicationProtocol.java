@@ -66,4 +66,14 @@ public class SpheroCommunicationProtocol implements TangibleDeviceCommunicationP
 	public void showText(String msg) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
+
+	@Override
+	public void showText(String msg, int color) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void fadeColor(int color) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }
