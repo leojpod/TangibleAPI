@@ -4,6 +4,7 @@ import com.sun.jersey.api.container.grizzly2.GrizzlyServerFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,11 +19,15 @@ import org.glassfish.grizzly.http.server.StaticHttpHandler;
  */
 public class TangibleAPI {
 	private static String pathToResources;
+	private static String ipAddress = "localhost";
   /**
 	 * @param args the command line arguments
 	 * @throws IOException  
    */
   public static void main(String[] args) throws IOException {
+		ipAddress = InetAddress.getLocalHost().getHostAddress();
+		ipAddress = "0.0.0.0";
+		System.out.println("IP address is: "+ipAddress);
 		if(args.length == 1){
 			pathToResources = args[0];
 		}else{
@@ -72,14 +77,14 @@ public class TangibleAPI {
 
   private static URI getBaseURI() {
 //    return UriBuilder.fromUri("http://130.240.94.8/").port(9998).build();
-		return UriBuilder.fromUri("http://localhost/").port(9998).build();
+		return UriBuilder.fromUri("http://"+ipAddress+"/").port(9998).build();
   }
-  public static final URI BASE_URI = getBaseURI();
+//  public static final URI BASE_URI = getBaseURI();
   protected static HttpServer startServer() throws IOException {
 //    System.out.println("Starting grizzly...");
     ResourceConfig rc = new PackagesResourceConfig("restful");
 
-    HttpServer server = GrizzlyServerFactory.createHttpServer(BASE_URI, rc);
+    HttpServer server = GrizzlyServerFactory.createHttpServer(getBaseURI(), rc);
 //    server.getServerConfiguration()
 //			.addHttpHandler(new StaticHttpHandler("resources\\"), "/resources");
     server.getServerConfiguration()
