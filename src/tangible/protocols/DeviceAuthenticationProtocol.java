@@ -193,25 +193,25 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     //and we are good
     //but just before that we need to tell the device that the authentication worked fine
     finalizeAuthentication();
-		try {
-			//    System.out.println("and we are good, "
-			//        + "the devices authentication is done for this one!");
-			File pic = new File("cover.png");
-			if(pic.exists()){
-				System.out.println("picture found "+pic.getAbsolutePath());
-				BufferedImage img = ImageIO.read(ImageIO.createImageInputStream(pic));
-				img.flush();
-				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showPicture(img);
-				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi!");
-				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi! this is a test");
-
-				DeviceFinderAccess.getInstance().getDevices().get(1).getTalk().fadeColor(0x00ff00);
-			} else{
-				System.out.println("picture not found "+pic.getAbsolutePath());
-			}
-		} catch (IOException ex) {
-			Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(Level.SEVERE, null, ex);
-		}
+//		try {
+//			//    System.out.println("and we are good, "
+//			//        + "the devices authentication is done for this one!");
+//			File pic = new File("cover.png");
+//			if(pic.exists()){
+//				System.out.println("picture found "+pic.getAbsolutePath());
+//				BufferedImage img = ImageIO.read(ImageIO.createImageInputStream(pic));
+//				img.flush();
+//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showPicture(img);
+//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi!");
+//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi! this is a test");
+//
+//				DeviceFinderAccess.getInstance().getDevices().get(1).getTalk().fadeColor(0x00ff00);
+//			} else{
+//				System.out.println("picture not found "+pic.getAbsolutePath());
+//			}
+//		} catch (IOException ex) {
+//			Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(Level.SEVERE, null, ex);
+//		}
   }
 
 

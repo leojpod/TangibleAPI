@@ -55,63 +55,6 @@ function tangiblePUT(svr_ip, uri, params, onSuccess, onError, async) {
 }
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc=" Method to support the API ">
-function registerApplication(svr_ip, name, description, onSuccess, onError, async) {
-	"use strict";
-	tangiblePUT(svr_ip, "app/registration/", {
-		appname : name,
-		description : description
-	}, onSuccess, onError, async);
-}
-function removeApplication(svr_ip, appUUID, onSuccess, onError, async) {
-	"use strict";
-	tangibleDELETE(svr_ip, "app/registration/" + appUUID, {}, onSuccess, onError, async);
-}
-function getDeviceList(svr_ip, appUUID, onSuccess, onError, async) {
-	"use strict";
-	var url = appUUID + "/device/";
-	tangibleGET(svr_ip, url, {}, onSuccess, onError, async);
-}
-function reserveDeviceById(svr_ip, appUUID, devId, onSuccess, onError, async) {
-	"use strict";
-	var url = appUUID + "/device/reservation/" + devId;
-	tangiblePUT(svr_ip, url, {}, onSuccess, onError, async);
-}
-function removeReservation(svr_ip, appUUID, devId, onSuccess, onError, async) {
-	"use strict";
-	var uri = appUUID + "/device/reservation/" + devId;
-	tangibleDELETE(svr_ip, uri, {}, onSuccess, onError, async);
-}
-function infoOnDevice(svr_ip, appUUID, devId, onSuccess, onError, async) {
-	"use strict";
-	var uri = appUUID + "/device/info/" + devId;
-	tangibleGET(svr_ip, uri, {}, onSuccess, onError, async);
-}
-function showColor(svr_ip, appUUID, devId, color, onSuccess, onError, async) {
-	"use strict";
-	var uri = appUUID + "/device_methods/" + devId + "/show_color/";
-	tangiblePUT(svr_ip, uri, {
-		color : color
-	}, onSuccess, onError, async);
-}
-function showText(svr_ip, appUUID, devId, msg, onSuccess, onError, async) {
-	"use strict";
-	var uri = appUUID + "/device_methods/" + devId + "/text_message/";
-	tangiblePUT(svr_ip, uri, {
-		msg : msg
-	}, onSuccess, onError, async);
-}
-function subscribeToEvents(svr_ip, appUUID, devId, onSuccess, onError, async) {
-	'use strict';
-	var uri = appUUID + "/device_methods/" + devId + "/subscribe";
-	tangiblePUT(svr_ip, uri, {
-		sock_type : 'ws'
-	}, onSuccess, onError, async);
-}
-//TODO add the suppport for picture and events
-
-// </editor-fold>
-
 function TangibleAPI(server_ip) {
 	"use strict";
 	var appUUID = null, reservedDevices = [], that = this, svr_ip = server_ip;
@@ -219,7 +162,7 @@ function TangibleAPI(server_ip) {
 				}, onSuccess, onError, async);
 		}
 	};
-	this.showText = function (deviceId, text, onSuccess, onError, async) {
+	this.showText = function (deviceId, text, color, onSuccess, onError, async) {
 		if (appUUID === null) {
 			onError({
 				msg : 'application not registered!'
@@ -227,7 +170,20 @@ function TangibleAPI(server_ip) {
 		} else {
 			tangiblePUT(svr_ip, appUUID + "/device_methods/" + deviceId + "/text_message",
 				{
-					msg : text
+					msg : text,
+					color : color
+				}, onSuccess, onError, async);
+		}
+	};
+	this.fadeColor = function (deviceId, color, onSuccess, onError, async) {
+		if (appUUID === null) {
+			onError({
+				msg: ' application not registered!'
+			});
+		} else {
+			tangiblePUT(svr_ip, appUUID + "/device_methods/" + deviceId + "/fade_color",
+				{
+					color : color
 				}, onSuccess, onError, async);
 		}
 	};

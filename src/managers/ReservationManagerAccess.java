@@ -72,6 +72,9 @@ public enum ReservationManagerAccess {
     public Set<String> reservedByAnApp(UUID app_id)
         throws UnsuccessfulReservationException {
       Set<String> devIds = new HashSet<String>();
+			if(app_id == null) {
+				throw new UnsuccessfulReservationException();
+			}
       for(TangibleDevice dev : _reservations.get(app_id)){
         devIds.add(dev.id);
       }
