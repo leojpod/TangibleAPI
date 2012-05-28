@@ -13,19 +13,19 @@ function tangibleREST(method, svr_ip, uri, params, onSuccess, onError, async) {
 		dataType : "json",
 		data : params
 	};
-	if (onSuccess !== undefined) {
+	if (onSuccess !== undefined && onSuccess !== null) {
 		ajaxParams.success =
 			function (data, textStatus, jqXHR) {
 				onSuccess(data);
 			};
 	}
-	if (onError !== undefined) {
+	if (onError !== undefined && onError !== null) {
 		ajaxParams.error =
 			function (jqXHR, textStatus, errorThrown) {
 				onError(errorThrown);
 			};
 	}
-	if (async !== undefined) {
+	if (async !== undefined && async !== null) {
 		ajaxParams.async = async;
 		if (async === false) {
 			console.log('making a sync call to : <<' + uri + '>>');
@@ -172,6 +172,18 @@ function TangibleAPI(server_ip) {
 				{
 					msg : text,
 					color : color
+				}, onSuccess, onError, async);
+		}
+	};
+	this.showPicture = function (deviceId, url, onSuccess, onError, async) {
+		if (appUUID === null) {
+			onError({
+				msg : 'application not registered!'
+			});
+		} else {
+			tangiblePUT(svr_ip, appUUID + "/device_methods/" + deviceId + "/show_picture",
+				{
+					url : url
 				}, onSuccess, onError, async);
 		}
 	};

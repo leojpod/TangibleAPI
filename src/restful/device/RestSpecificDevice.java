@@ -8,6 +8,8 @@ import commons.ApiException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -181,6 +183,25 @@ public class RestSpecificDevice extends ConditionalAccessResource {
       return this.createErrorMsg(origin, "Could not procceed the picture", "something didn't work with the given picture");
     }
   }
+	@PUT @Path("/show_picture")
+	public Response showPictureFromURL(@PathParam("device_ID") String devId,
+		@FormParam("url") String pic_url,
+		@HeaderParam("Origin") String origin){
+		try {
+			URL url = new URL(pic_url);
+			BufferedImage img = ImageIO.read(url);
+			TangibleDevice dev = _finder.getDevice(devId);
+			dev.getTalk().showPicture(img);
+			return null;
+		} catch (MalformedURLException ex) {
+			return this.createErrorMsg(origin, new ApiException(
+					Response.Status.BAD_REQUEST, "the given URL is not malformed"));
+		} catch (IOException ex) {
+			return this.createErrorMsg(origin, new ApiException(
+					Response.Status.BAD_REQUEST, "the given url couldn't be loaded"));
+		}
+	}
+	
 	@OPTIONS @Path("/fade_color")
   public Response fadeColorOptions(
           @HeaderParam("Access-Control-Request-Headers") String requestH,
