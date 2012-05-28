@@ -25,8 +25,9 @@ function tangibleREST(method, svr_ip, uri, params, onSuccess, onError, async) {
 				onError(errorThrown);
 			};
 	}
-	if (async !== undefined && async !== null) {
-		ajaxParams.async = async;
+	if (true || async !== undefined && async !== null) {
+		//ajaxParams.async = async;
+		ajaxParams.async = false;
 		if (async === false) {
 			console.log('making a sync call to : <<' + uri + '>>');
 		}
