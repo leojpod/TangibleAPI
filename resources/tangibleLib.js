@@ -28,7 +28,7 @@ function tangibleREST(method, svr_ip, uri, params, onSuccess, onError, async) {
 	if (async !== undefined && async !== null) {
 		ajaxParams.async = async;
 	}
-	console.log("making an ajax call to : " + uri);
+	//console.log("making an ajax call to : " + uri);
 	$.ajax(
 		"http://" + svr_ip + ":9998/tangibleapi/" + uri,
 		ajaxParams
@@ -126,10 +126,10 @@ function TangibleAPI(server_ip) {
 				onError({ msg: "an attempt to get this device is already running, try to get another one..."});
 			} else {
 				reservationAttemptInProgress[deviceId] = true;
-				console.log("about to make a call to reserve the device : " + deviceId);
+//				console.log("about to make a call to reserve the device : " + deviceId);
 				tangiblePUT(svr_ip, appUUID + "/device/reservation/" + deviceId, {},
 					function (data) {
-						console.log("reservation successful");
+//						console.log("reservation successful");
 						reservedDevices.push(data.msg);
 						reservationAttemptInProgress[deviceId] = undefined;
 						onSuccess(data);
@@ -274,11 +274,11 @@ function SubscriptionMgr() {
 //		console.log('about to filter:' + rcvEvt.data);
 		var jsonMsg = $.parseJSON(rcvEvt.data), devId, eventType, params, idx;
 		if (jsonMsg.flow !== 'event') {
-			console.log("we recevied a non-event message, and ignored it");
+//			console.log("we recevied a non-event message, and ignored it");
 			return;
 		}
 		if (jsonMsg.msg === undefined) {
-			console.log('no message in the received event, let\'s ignore it');
+//			console.log('no message in the received event, let\'s ignore it');
 			return;
 		}
 		if (jsonMsg.msg.devId !== undefined &&
@@ -286,7 +286,7 @@ function SubscriptionMgr() {
 			devId = jsonMsg.msg.devId;
 			eventType = jsonMsg.msg.event;
 		} else {
-			console.log('missing a required field, let\'s ignore the message');
+//			console.log('missing a required field, let\'s ignore the message');
 			return;
 		}
 		if (jsonMsg.msg.params !== undefined) {
@@ -307,16 +307,16 @@ function SubscriptionMgr() {
 	this.init = function (appUUID, uri) {
 		wsStream = new WebSocket(uri);
 		wsStream.onopen = function (evt) {
-			console.log('websocket is now open' + evt.data);
+//			console.log('websocket is now open' + evt.data);
 			wsStream.send(JSON.stringify({'flow': 'ctrl', 'msg' : appUUID}));
 //			wsStream.send({'flow': 'ctrl', 'msg' : appUUID});
 		};
 		wsStream.onmessage = filterEvents;
-		console.log('SubscriptionMgr.init completed!');
+//		console.log('SubscriptionMgr.init completed!');
 	};
 
 	this.addListener = function (onEvent, eventType, devId) {
-		console.log('SubscriptionMgr.addListener starting');
+//		console.log('SubscriptionMgr.addListener starting');
 		if (listenerDict[devId] === undefined) {
 			listenerDict[devId] = [];
 			listenerDict[devId][eventType] = [];
@@ -324,7 +324,7 @@ function SubscriptionMgr() {
 			listenerDict[devId][eventType] = [];
 		}
 		listenerDict[devId][eventType].push(onEvent);
-		console.log('SubscriptionMgr.addListener completed');
+//		console.log('SubscriptionMgr.addListener completed');
 	};
 
 	this.close = function () {
@@ -390,7 +390,7 @@ var tangibleComponent = function () {
 				initComponent(server_ip);
 			},
 			useDevice : function (label, onUsable, onError, deviceProperties, async) {
-				console.log("the device " + label + " is required...");
+//				console.log("the device " + label + " is required...");
 				if (!ready) {
 					onError({
 						msg : "the tangibleComponent is not initialized!"
@@ -415,12 +415,12 @@ var tangibleComponent = function () {
 				//first, check is the device is already available
 				if (labeledDevices[label] !== undefined) {
 					//if it is well let's use it! right?
-					console.log("device already reserved with the id: " + labeledDevices[label]);
+//					console.log("device already reserved with the id: " + labeledDevices[label]);
 					onUsable(labeledDevices[label]);
 				} else if (comingSoonDevices[label] !== undefined) {
 					//2nd check: is the device already on its way?
 					//the device is being required, let's just wait for it
-					console.log("be patient your device (" + label + ") is comming soon");
+//					console.log("be patient your device (" + label + ") is comming soon");
 					comingSoonDevices[label].push(onUsable);
 				} else {
 					//otherwise, let's reserve it: we are the first one to require this device.
@@ -434,7 +434,7 @@ var tangibleComponent = function () {
 						api.requestAnyDevice(function (data) {
 							//the device is reserved now.
 							labeledDevices[label] = data.msg;
-							console.log('new added element ' + labeledDevices[label]);
+//							console.log('new added element ' + labeledDevices[label]);
 							onUsable(data.msg);// we can warn the user and let him do his stuff with it
 							//we have the device, it's time to wake up the potential others
 							if (comingSoonDevices[label] !== undefined) {
@@ -452,6 +452,7 @@ var tangibleComponent = function () {
 					} else {
 						//TODO create a reservation based on the type of devices or on its capacity
 						console.log("specifying deviceProperties is not implemented yet!");
+						onError({msg : "the option deviceProperties is not implemented yet"});
 					}
 				}
 			},
@@ -467,12 +468,12 @@ var tangibleComponent = function () {
 			subscribeToEvent: function (devId, eventType, onEvent, onError) {
 				api.subscribeToEvents(devId,
 					function (data) {
-						console.log('subscription to event succesfully made');
+//						console.log('subscription to event succesfully made');
 						streamSubs.addListener(onEvent, eventType, devId);
 						if (!streamSubs.isInitialized()) {
-							console.log('SubscriptionMgr not initialized yet');
+//							console.log('SubscriptionMgr not initialized yet');
 							var uri = 'ws://' + svr_ip + ':' + data.msg.port + '/streaming';
-							console.log('trying to reach the following uri ' + uri);
+//							console.log('trying to reach the following uri ' + uri);
 							streamSubs.init(api.getAppUUID(), uri);
 						}
 					}, onError);
