@@ -31,6 +31,7 @@ function tangibleREST(method, svr_ip, uri, params, onSuccess, onError, async) {
 			console.log('making a sync call to : <<' + uri + '>>');
 		}
 	}
+	console.log("making an ajax call to : " + uri);
 	$.ajax(
 		"http://" + svr_ip + ":9998/tangibleapi/" + uri,
 		ajaxParams
