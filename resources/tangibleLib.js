@@ -378,7 +378,7 @@ var tangibleComponent = function () {
 				initComponent(server_ip);
 			},
 			useDevice : function (label, onUsable, onError, deviceProperties, async) {
-				console.log("the device " + label + "is required...");
+				console.log("the device " + label + " is required...");
 				if (!ready) {
 					onError({
 						msg : "the tangibleComponent is not initialized!"
@@ -403,12 +403,12 @@ var tangibleComponent = function () {
 				//first, check is the device is already available
 				if (labeledDevices[label] !== undefined) {
 					//if it is well let's use it! right?
-					console.log("device already reserved");
+					console.log("device already reserved with the id: " + labeledDevices[label]);
 					onUsable(labeledDevices[label]);
 				} else if (comingSoonDevices[label] !== undefined) {
 					//2nd check: is the device already on its way?
 					//the device is being required, let's just wait for it
-					console.log("be patient your device is comming soon");
+					console.log("be patient your device (" + label + ") is comming soon");
 					comingSoonDevices[label].push(onUsable);
 				} else {
 					//otherwise, let's reserve it: we are the first one to require this device.
@@ -422,7 +422,7 @@ var tangibleComponent = function () {
 						api.requestAnyDevice(function (data) {
 							//the device is reserved now.
 							labeledDevices[label] = data.msg;
-							//console.log('new added element ' + labeledDevices[label]);
+							console.log('new added element ' + labeledDevices[label]);
 							onUsable(data.msg);// we can warn the user and let him do his stuff with it
 							//we have the device, it's time to wake up the potential others
 							if (comingSoonDevices[label] !== undefined) {
