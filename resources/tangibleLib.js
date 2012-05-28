@@ -121,6 +121,7 @@ function TangibleAPI(server_ip) {
 			console.log("about to make a call to reserve the device : " + deviceId);
 			tangiblePUT(svr_ip, appUUID + "/device/reservation/" + deviceId, {},
 				function (data) {
+					console.log("reservation successful");
 					reservedDevices.push(data.msg);
 					onSuccess(data);
 				}, onError, async);
