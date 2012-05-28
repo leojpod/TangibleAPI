@@ -118,6 +118,7 @@ function TangibleAPI(server_ip) {
 				msg : 'application not registered!'
 			});
 		} else {
+			console.log("about to make a call to reserve the device : " + deviceId);
 			tangiblePUT(svr_ip, appUUID + "/device/reservation/" + deviceId, {},
 				function (data) {
 					reservedDevices.push(data.msg);
