@@ -55,7 +55,11 @@ function tangiblePUT(svr_ip, uri, params, onSuccess, onError, async) {
 
 function TangibleAPI(server_ip) {
 	"use strict";
-	var appUUID = null, reservedDevices = [], that = this, svr_ip = server_ip;
+	var appUUID = null,
+		reservedDevices = [],
+		that = this,
+		svr_ip = server_ip,
+		reservationAttemptInProgress = [];
 
 	function requestDeviceFromList(listOfDevices, onSuccess, onError, async) {
 		var dev = listOfDevices.shift();
@@ -110,19 +114,27 @@ function TangibleAPI(server_ip) {
 			tangibleGET(svr_ip, appUUID + "/device/", {}, onSuccess, onError, async);
 		}
 	};
-	this.reserveDevice = function (deviceId, onSuccess, onError) {
+	this.reserveDevice = function (deviceId, onSuccess, onError, async) {
 		if (appUUID === null) {
 			onError({
 				msg : 'application not registered!'
 			});
 		} else {
-			console.log("about to make a call to reserve the device : " + deviceId);
-			tangiblePUT(svr_ip, appUUID + "/device/reservation/" + deviceId, {},
-				function (data) {
-					console.log("reservation successful");
-					reservedDevices.push(data.msg);
-					onSuccess(data);
-				}, onError, false);
+			if (reservationAttemptInProgress[deviceId] !== undefined) {
+				//someone is already trying to get this device
+				//so let's send an error message: if the other reservation failed there will be a reason
+				onError({ msg: "an attempt to get this device is already running, try to get another one..."});
+			} else {
+				reservationAttemptInProgress[deviceId] = true;
+				console.log("about to make a call to reserve the device : " + deviceId);
+				tangiblePUT(svr_ip, appUUID + "/device/reservation/" + deviceId, {},
+					function (data) {
+						console.log("reservation successful");
+						reservedDevices.push(data.msg);
+						reservationAttemptInProgress[deviceId] = undefined;
+						onSuccess(data);
+					}, onError, async);
+			}
 		}
 	};
 	this.releaseDevice = function (deviceId, onSuccess, onError, async) {

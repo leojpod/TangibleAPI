@@ -4,6 +4,8 @@
 package managers;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import tangible.devices.TangibleDevice;
 
 /**
@@ -37,8 +39,9 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public String reserveDeviceById(String device_id, UUID app_id)
+    public synchronized String reserveDeviceById(String device_id, UUID app_id)
         throws UnsuccessfulReservationException {
+			Logger.getLogger(ReservationManagerImpl.class.getName()).log(Level.INFO, "trying to reserve the device: {0}", device_id);
       if(!isDeviceAvailable(device_id) || app_id == null){
         throw new UnsuccessfulReservationException();
       }//else the device is available
@@ -63,7 +66,7 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public String reserveDeviceByType(String type, UUID app_id)
+    public synchronized String reserveDeviceByType(String type, UUID app_id)
         throws UnsuccessfulReservationException {
       throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -86,7 +89,7 @@ public enum ReservationManagerAccess {
     }
 
     @Override
-    public void endReservation(String device_id, UUID app_id) {
+    public synchronized void endReservation(String device_id, UUID app_id) {
       if(!_busyDevices.containsKey(device_id) || //if the device is not busy
         _reservations.get(app_id) == null || //or if this application has no reservation
           !_reservations.get(app_id).contains(_busyDevices.get(device_id))){ //or if this device is not reserved by this application

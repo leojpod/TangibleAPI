@@ -6,19 +6,16 @@ package tangible.protocols.device_speficic.sifteo;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import commons.ApiException;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
+import java.awt.image.*;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.core.Response;
 import restful.streaming.AbstractStreamingThread;
 import tangible.devices.SifteoCubeDevice;
 import tangible.gateway.SiftDriver;
@@ -305,6 +302,7 @@ public class SiftDriverCommunicationProtocol
 		AffineTransformOp scaleOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
 		scaled = scaleOp.filter(img, null);
 		scaled.flush();
+		System.out.println("scaled size is: " + scaled.getWidth()+"x"+scaled.getHeight());
 
 		int[] byteArray = new int[128*128*4];
 //
@@ -323,14 +321,46 @@ public class SiftDriverCommunicationProtocol
 //			}
 //		}
 
-		byte[] rgb = ((DataBufferByte)scaled.getData().getDataBuffer()).getData();
-		System.out.println("rgb data size is : "+rgb.length);
-		for(int i = 0; i < byteArray.length; i++){
-			byteArray[i] = rgb[i] & 0xff;
-			if(rgb[i] != -1){
-				System.out.print("  b:"+rgb[i]+"/"+byteArray[i]);
+		
+		DataBuffer buffer = scaled.getData().getDataBuffer();
+		if (buffer instanceof DataBufferByte) {
+			byte[] rgb;
+			DataBufferByte dataBufferByte = (DataBufferByte) buffer;
+			rgb = dataBufferByte.getData();
+			System.out.println("rgb data size is : "+rgb.length);
+			for(int i = 0; i < byteArray.length && i < rgb.length; i++){
+				byteArray[i] = rgb[i] & 0xff;
+				if(rgb[i] != -1){
+					System.out.print("  b:"+rgb[i]+"/"+byteArray[i]);
+				}
 			}
+			if(rgb.length < byteArray.length) {
+				Arrays.fill(byteArray, rgb.length, byteArray.length, 0xff);
+			}
+		} else if (buffer instanceof DataBufferInt) {
+			DataBufferInt dataBufferInt = (DataBufferInt) buffer;
+			int[] rgbInt = dataBufferInt.getData();
+			System.out.println("rgbInt data size is : " + rgbInt.length + " compared to byteArray : "+byteArray.length);
+			for (int i = 0; i < rgbInt.length && 4*i < byteArray.length; i ++){
+				Color color = new Color (rgbInt[i]);
+				//alpha
+				byteArray[4*i] = color.getAlpha();
+				//b
+				byteArray[4*i+1] = color.getBlue();
+				//g
+				byteArray[4*i+2] = color.getGreen();
+				//r
+				byteArray[4*i+3] = color.getRed();
+			}
+			
+			if(4* rgbInt.length < byteArray.length) {
+				Arrays.fill(byteArray, 4* rgbInt.length, byteArray.length, 0xff);
+			}
+		} else {
+			throw new ApiException(Response.Status.INTERNAL_SERVER_ERROR,
+					"picture format not recognized");
 		}
+		
 
 		JsonElement jsonPic = new Gson().toJsonTree(byteArray);
 		JsonObject msg = new JsonObject();
