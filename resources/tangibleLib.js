@@ -25,12 +25,8 @@ function tangibleREST(method, svr_ip, uri, params, onSuccess, onError, async) {
 				onError(errorThrown);
 			};
 	}
-	if (true || async !== undefined && async !== null) {
-		//ajaxParams.async = async;
-		ajaxParams.async = false;
-		if (async === false) {
-			console.log('making a sync call to : <<' + uri + '>>');
-		}
+	if (async !== undefined && async !== null) {
+		ajaxParams.async = async;
 	}
 	console.log("making an ajax call to : " + uri);
 	$.ajax(
@@ -114,7 +110,7 @@ function TangibleAPI(server_ip) {
 			tangibleGET(svr_ip, appUUID + "/device/", {}, onSuccess, onError, async);
 		}
 	};
-	this.reserveDevice = function (deviceId, onSuccess, onError, async) {
+	this.reserveDevice = function (deviceId, onSuccess, onError) {
 		if (appUUID === null) {
 			onError({
 				msg : 'application not registered!'
@@ -126,7 +122,7 @@ function TangibleAPI(server_ip) {
 					console.log("reservation successful");
 					reservedDevices.push(data.msg);
 					onSuccess(data);
-				}, onError, async);
+				}, onError, false);
 		}
 	};
 	this.releaseDevice = function (deviceId, onSuccess, onError, async) {
