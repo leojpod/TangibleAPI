@@ -3,6 +3,8 @@
  */
 package utils;
 
+import com.google.gson.JsonObject;
+
 /**
  *
  * @author leo
@@ -46,4 +48,16 @@ public class ColorHelper {
       return "the given color : "+value+" is not a valid one!";
     }
   }
+	
+	public static JsonObject toJson(int r, int g, int b) {
+		JsonObject rgb = new JsonObject();
+		rgb.addProperty("r", r);
+		rgb.addProperty("g", g);
+		rgb.addProperty("b", b);
+		return rgb;
+	}
+	public static JsonObject toJson(int color) {
+		int[] rgb = decompose(color);
+		return toJson(rgb[0], rgb[1], rgb[2]);
+	}
 }
