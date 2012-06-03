@@ -79,7 +79,7 @@ public enum ReservationManagerAccess {
 				throw new UnsuccessfulReservationException();
 			}
       for(TangibleDevice dev : _reservations.get(app_id)){
-        devIds.add(dev.id);
+        devIds.add(dev.getId());
       }
       return devIds;
     }

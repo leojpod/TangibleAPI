@@ -77,20 +77,6 @@ public enum DeviceFinderAccess implements SingletonAccessor<DeviceFinder> {
       }
     }
 
-    private void attemptDeviceAuthenticationV1(Socket sock) throws IOException{
-      DeviceAuthenticationProtocol auth = new DeviceAuthenticationProtocol(sock, 10000);
-      TangibleDevice dev = auth.authenticateDevice();
-      _devices.add(dev);
-      //_free.add(dev);
-      dev.attachSocket(sock);
-      Logger.getLogger(DeviceFinderImpl.class.getName()).
-          log(Level.INFO, "a device was added: hashcode:{0}", dev.getHashCode());
-      //TODO_LATER check the device compatibility and so...
-
-      auth.finalizeAuthentication();
-//      Logger.getLogger(DeviceFinderImpl.class.getName()).
-//          log(Level.INFO, "the device has been notified of this success");
-    }
     private void attemptDeviceAuthenticationV2(Socket sock) throws IOException{
       DeviceAuthenticationProtocol authProc = new DeviceAuthenticationProtocol(sock, 10000, properties.protocolVersion());
       authProc.authenticateDevices(new DeviceAuthenticationProtocol.DeviceFoundCallBack() {

@@ -93,7 +93,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean contains(Object o) {
     if(o instanceof TangibleDevice){
       TangibleDevice dev = (TangibleDevice) o;
-      return _devices.get(dev.type).contains(o);
+      return _devices.get(dev.getType()).contains(o);
     }else{
       return false;
     }
@@ -117,7 +117,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   @Override
   public boolean add(TangibleDevice e) {
     //the mainly interesting method in this class:
-    String type = e.type;
+    String type = e.getType();
     if(!_devices.containsKey(type)){
       _devices.put(type, new LinkedHashSet<TangibleDevice>());
     }
@@ -128,11 +128,11 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean remove(Object o) {
     if(o instanceof TangibleDevice){
       TangibleDevice dev = (TangibleDevice) o;
-      if(!_devices.containsKey(dev.type)){
+      if(!_devices.containsKey(dev.getType())){
         // no such type of device!
         return false;
       }else{
-        return _devices.get(dev.type).remove(o);
+        return _devices.get(dev.getType()).remove(o);
       }
     }else{
       return false;
@@ -173,7 +173,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean containsId(String id) {
     boolean find = false;
     for(Iterator<TangibleDevice> ite = this.iterator(); !find && ite.hasNext();){
-      if(ite.next().id.equals(id)){
+      if(ite.next().getId().equals(id)){
         //we found it!
         find = true;
       }
@@ -184,7 +184,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public TangibleDevice getById(String id) throws DeviceNotFoundException{
     for(Iterator<TangibleDevice> ite = this.iterator(); ite.hasNext();){
       TangibleDevice dev = ite.next();
-      if(dev.id.equals(id)){
+      if(dev.getId().equals(id)){
         //we found it!
         return dev;
       }//else let's go on looking for it

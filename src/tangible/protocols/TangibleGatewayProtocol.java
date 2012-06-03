@@ -12,10 +12,19 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.Response;
+import restful.streaming.AbstractStreamingThread;
 import tangible.enums.Capacity;
+import tangible.gateway.TangibleGateway;
+import tangible.utils.JsonMessageReadingThread;
+import tangible.utils.JsonProtocolHelper;
+import tangible.utils.Listener;
+import tangible.utils.exceptions.WrongProtocolJsonSyntaxException;
 import utils.ColorHelper;
 import utils.Couple;
 
@@ -26,7 +35,7 @@ import utils.Couple;
 public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 
 	
-	public static class UnSupportedMethodException extends ApiException {
+	public static final class UnSupportedMethodException extends ApiException {
 		private static final long serialVersionUID = 1L;
 
 		public UnSupportedMethodException(Capacity c) {
@@ -34,7 +43,7 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 					"this device does not support this operation: "+c.name());
 		}
 	}
-	private static class ScreenSize  extends Couple<Integer, Integer>{
+	public static final class ScreenSize  extends Couple<Integer, Integer>{
 
 		public ScreenSize(int heigth, int width) {
 			super(heigth, width);
@@ -44,24 +53,89 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		public int getWidth() { return _u; }
 	}
 	
-	
+	private final class StreamingThreadReporter implements JsonMessageReadingThread.JsonEventListener {
+
+		private AbstractStreamingThread _th;
+		//TODO_LATER store a list of events to which we subscribed plus a special
+		//    boolean to know when we are reporting everything (hence efficiency)
+		public List<String> _followedDevices;
+
+		public StreamingThreadReporter(AbstractStreamingThread th) {
+			this._th = th;
+			_followedDevices = new ArrayList<String>();
+		}
+
+		public StreamingThreadReporter(AbstractStreamingThread th, String[] devId) {
+			this(th);
+			this.addDevices(devId);
+		}
+
+		public void addEventNotification(String event) {
+			throw new UnsupportedOperationException("Not supported yet.");
+		}
+
+		public void addDevice(String devId) {
+			_followedDevices.add(devId);
+		}
+
+		public void addDevices(String[] devIds) {
+			for (String id : devIds) {
+				this.addDevice(id);
+			}
+		}
+
+		@Override
+		public void callback(JsonObject t) {
+			try {
+				JsonObject msg = JsonProtocolHelper.assertObjectInObject(t, "msg");
+				String event = JsonProtocolHelper.assertStringInObject(msg, "event");
+				String devID = JsonProtocolHelper.assertStringInObject(msg, "devId");
+				if (_followedDevices.contains(devID)) {
+					//TODO_LATER check that the event is one of the followed one
+					//this is a valid and followed event let's send it!
+					_th.sendEvent(t);
+				} else {
+//          Logger.getLogger(StreamingThreadReporter.class.getName()).log(Level.INFO, "no one following this device... ");
+				}
+			} catch (WrongProtocolJsonSyntaxException ex) {
+				Logger.getLogger(StreamingThreadReporter.class.getName()).log(Level.INFO, "ignoring a badly formated message: {0}\n\tthe message was: {1}", new Object[]{ex.getMessage(), t.toString()});
+			}
+		}
+	}
 	public final String type;
 	public final String protocol_version;
 	public final Gson gson = new Gson();
-	public List<Capacity> _capacities;
-	public ScreenSize _size;
+	public final TangibleGateway _gateway;
+	private List<Capacity> _capacities;
+	private ScreenSize _size;
 	
-	public TangibleGatewayProtocol(Socket s, String type, String protocol_version, List<Capacity> capacities) throws IOException {
+	private JsonMessageReadingThread _readingThread;
+	private List<StreamingThreadReporter> _reporters;
+	
+	
+	public TangibleGatewayProtocol(Socket s, String type, String protocol_version, Capacity[] capacities, TangibleGateway gateway) throws IOException {
 		super(s);
 		this.type = type;
 		this.protocol_version = protocol_version;
-		this._capacities = capacities;
+		this._capacities = Arrays.asList(capacities);
+		_gateway = gateway;
+		_readingThread = new JsonMessageReadingThread(this.getInput());
+		_readingThread.setStreamOverListener(new Listener<Void>() {
+			@Override
+			public void callback(Void t) {
+				_gateway.handleDisconnection();
+			}
+		});
+		_reporters = new ArrayList<StreamingThreadReporter>();
 	}
 	
 	public void setScreenSize(int height, int width) {
 		_size = new ScreenSize(height, width);
 	}
-	
+	public void startReading(){
+		//TODO we shoudl add some assert event reporting here and on the _readingThread initialization as well... 
+		_readingThread.start();
+	}
 	
 	public Capacity[] getCapacities() {
 		return _capacities.toArray(new Capacity[0]);
@@ -193,5 +267,15 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		params.add("color", ColorHelper.toJson(r,g,b));
 		this.sendEventCommand("fade_color", params, devIds);
 	}
+	
+
+	public void startAllEventReporting(AbstractStreamingThread sTh, String[] devId) {
+		assertCanDo(Capacity.report_events);
+		StreamingThreadReporter aReporter = new StreamingThreadReporter(sTh, devId);
+		this._reporters.add(aReporter);
+		this._readingThread.addEventListener(aReporter);
+		this.sendEventCommand("report_all_events", new JsonObject(), devId);
+	}
+	
 	
 }

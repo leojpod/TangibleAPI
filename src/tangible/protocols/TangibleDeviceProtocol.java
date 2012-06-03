@@ -5,7 +5,7 @@ package tangible.protocols;
 
 import java.awt.image.BufferedImage;
 import restful.streaming.AbstractStreamingThread;
-import tangible.devices.GenericTangibleDevice;
+import tangible.devices.TangibleDevice;
 import tangible.enums.Capacity;
 import utils.ColorHelper;
 
@@ -17,9 +17,9 @@ public class TangibleDeviceProtocol{
 	
 	
 	private TangibleGatewayProtocol _talk;
-	private GenericTangibleDevice _dev;
+	private TangibleDevice _dev;
 	
-	public TangibleDeviceProtocol(GenericTangibleDevice dev){
+	public TangibleDeviceProtocol(TangibleDevice dev){
 		_dev = dev;
 		_talk = _dev.getGateway().getTalk();
 	}
@@ -39,7 +39,7 @@ public class TangibleDeviceProtocol{
 		_talk.showPicture(img, getDevId());
 	}
   public void addAllEventsNotification(AbstractStreamingThread sTh){
-		_talk.sendAllEventRequest(sTh);
+		_talk.startAllEventReporting(sTh, getDevId());
 	}
 	public void showText(String msg){
 		_talk.showText(msg, getDevId());

@@ -1,19 +1,16 @@
 package tangible.protocols;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import managers.DeviceFinder;
 import managers.DeviceFinderAccess;
 import tangible.devices.TangibleDevice;
-import tangible.devices.TangibleDeviceIdentificator;
-import tangible.protocols.device_speficic.ProtocolSelector;
-import tangible.protocols.device_speficic.SpecificAuthenticationProtocol;
+import tangible.enums.Capacity;
+import tangible.gateway.TangibleGateway;
 import tangible.utils.CallBack;
 import tangible.utils.JsonProtocolHelper;
 import tangible.utils.exceptions.WrongProtocolException;
@@ -33,15 +30,6 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     implements CallBack<TangibleDevice, Boolean> {
   }
 
-  @Deprecated
-  public DeviceAuthenticationProtocol(Socket s, int timeout)
-      throws IOException {
-    super(s);
-    s.setSoTimeout(timeout);
-    _finder = DeviceFinderAccess.getInstance();
-    _api_protocol_version = "deprecated_protocol";
-  }
-
   public DeviceAuthenticationProtocol(Socket s, int timeout,
       String api_protocol_version) throws IOException{
     super(s);
@@ -49,95 +37,14 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     _api_protocol_version = api_protocol_version;
   }
 
-  @Deprecated
-  public TangibleDevice authenticateDevice() throws WrongProtocolException {
-    return authenticateDeviceV2();
-  }
-
   public void authenticateDevices(final DeviceFoundCallBack cb)
-      throws WrongProtocolException {
+      throws WrongProtocolException, IOException {
     try{
       authenticateDevicesV3(cb);
     } catch(WrongProtocolException ex){
       this.sendJSON(ex);
       throw ex;
     }
-  }
-
-  //old version not really handy
-  @Deprecated
-  private TangibleDevice authenticateDeviceV1() throws WrongProtocolException {
-    // <editor-fold defaultstate="collapsed" desc="old crappy code">
-    TangibleDevice dev;
-    dev = this.readJSON(TangibleDevice.class);
-    /*
-     * we received the generics information from the device. let's check that
-     * the protocol version is correct and then get ready to read the right
-     * TangibleDevice implementation
-     *
-     */
-    String api_protocol_version = this._finder.getProperty("discovery_protocol_version");
-    if (!dev.protocol_version.equals(api_protocol_version)) {
-      WrongProtocolVersionException ex =
-          new WrongProtocolVersionException(dev.protocol_version, api_protocol_version);
-      Logger.getLogger(_finder.getClass().getName()).log(Level.SEVERE, null, ex);
-      this.sendJSON(ex);
-      throw ex;
-    }
-    //The protocol version is the same, phew!
-    this.sendJSON("OK_waiting_for_details");
-    Class deviceClass = TangibleDeviceIdentificator.getDeviceByType(dev.type);
-    try {
-      dev = this.readJSON(deviceClass);
-    } catch (JsonSyntaxException ex) {
-      Logger.getLogger(_finder.getClass().getName()).log(Level.SEVERE, null, ex);
-      WrongProtocolJsonSyntaxException protocol_ex = new WrongProtocolJsonSyntaxException(ex.getLocalizedMessage());
-      this.sendJSON(protocol_ex);
-      throw protocol_ex;
-    }
-    /*
-     * TODO_LATER check that the device can correctly be handled that everything
-     * will be fine with it and only then send a JSON answer to the device
-     * driver
-     */
-    return dev;
-    // </editor-fold>
-  }
-
-
-  private TangibleDevice authenticateDeviceV2() throws WrongProtocolException {
-    JsonElement elem = this.readJSON();
-    JsonElement anElem; JsonObject anObj;
-//    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
-    //    Level.INFO, "parsed a Json element: {0}", elem.toString());
-    TangibleDevice dev = null;
-    if(!elem.isJsonObject()){
-      WrongProtocolException ex =
-          new WrongProtocolJsonSyntaxException("message are expected to be "
-          + "Json objects");
-      this.sendJsonCtrlMsg(ex);
-      throw ex;
-    }
-    //elem is an Object
-    JsonObject obj = elem.getAsJsonObject();
-    if((anElem = obj.get("flow")) == null
-        || !anElem.isJsonPrimitive()
-        || !anElem.getAsString().equals("ctrl")){
-      WrongProtocolException ex =
-          new WrongProtocolJsonSyntaxException("The middleware expected a "
-          + "control message");
-      this.sendJsonCtrlMsg(ex);
-      throw ex;
-    }
-    if((anElem = obj.get("msg"))== null || !anElem.isJsonObject()){
-      WrongProtocolException ex =
-          new WrongProtocolJsonSyntaxException("the field msg is expected "
-          + "to be a Json objects");
-      this.sendJsonCtrlMsg(ex);
-      throw ex;
-    }
-    anObj = anElem.getAsJsonObject();
-    return TangibleDeviceIdentificator.getDeviceFromJson(anObj);
   }
 
   public void finalizeAuthentication() {
@@ -153,7 +60,7 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
 
 
   private void authenticateDevicesV3(DeviceFoundCallBack cb)
-      throws WrongProtocolException {
+      throws WrongProtocolException, IOException {
     JsonElement elem = this.readJSON();
 //    Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(
 //        Level.INFO, "parsed a Json element: {0}", elem.toString());
@@ -180,33 +87,36 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
     if(!version.equals(_api_protocol_version)){
       throw new WrongProtocolVersionException(version, _api_protocol_version);
     }
-
-    SpecificAuthenticationProtocol spec_protocol = ProtocolSelector.getAuthenticationProtocol(type);
-    spec_protocol.authenticateDevices(content, this._sock, cb);
-    //NOTE: I am not sure that sending the socket here is the best idea but that
-    //will do for now...
-    //and we are good
-    //but just before that we need to tell the device that the authentication worked fine
+		
+		//now let's talk!
+		//we have the type, 
+		//we need the reportable events (but we'll keep that for later in a more evolved version)
+		//we need the list of devId concerned by the authentication: 
+		JsonArray devId_json = 
+				JsonProtocolHelper.assertArrayInObject(content, "devices");
+		String[] devIds = 
+				JsonProtocolHelper.assertArrayOfOneKind(devId_json, String.class);
+		JsonArray capacities_json = 
+				JsonProtocolHelper.assertArrayInObject(content, "capacities");
+		String[] capacities_str = 
+				JsonProtocolHelper.assertArrayOfOneKind(capacities_json, String.class);
+		Capacity[] capacities = new Capacity[capacities_str.length];
+		for(int i = 0; i < capacities_str.length; i ++) {
+			capacities[i] = Capacity.valueOf(capacities_str[i]);
+		}
+		//now we have what we need to create a tangible gateway and it's protocol... 
+		TangibleGateway gateway = new TangibleGateway();
+		TangibleGatewayProtocol gw_protocol = new TangibleGatewayProtocol(_sock, type, _api_protocol_version, capacities, gateway);
+		gateway.attachCommunication(gw_protocol);
+		for(String devId : devIds) {
+			TangibleDevice dev = new TangibleDevice(gateway, devId);
+			gateway.add(dev);
+			TangibleDeviceProtocol dev_talk = new TangibleDeviceProtocol(dev);
+			dev.attachDeviceProtocol(dev_talk);
+			cb.callback(dev);
+		}
+		System.out.println("Authentication successful!\n\twe know have "+ DeviceFinderAccess.getInstance().getDevices().size()+ " devices connected");
     finalizeAuthentication();
-//		try {
-//			//    System.out.println("and we are good, "
-//			//        + "the devices authentication is done for this one!");
-//			File pic = new File("cover.png");
-//			if(pic.exists()){
-//				System.out.println("picture found "+pic.getAbsolutePath());
-//				BufferedImage img = ImageIO.read(ImageIO.createImageInputStream(pic));
-//				img.flush();
-//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showPicture(img);
-//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi!");
-//				DeviceFinderAccess.getInstance().getDevices().get(0).getTalk().showText("hi! this is a test");
-//
-//				DeviceFinderAccess.getInstance().getDevices().get(1).getTalk().fadeColor(0x00ff00);
-//			} else{
-//				System.out.println("picture not found "+pic.getAbsolutePath());
-//			}
-//		} catch (IOException ex) {
-//			Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(Level.SEVERE, null, ex);
-//		}
   }
 
 
