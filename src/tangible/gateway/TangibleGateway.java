@@ -3,18 +3,19 @@
  */
 package tangible.gateway;
 
-import java.util.Collection;
-import tangible.devices.TangibleDevice;
-import tangible.protocols.TangibleGatewayCommunicationProtocol;
+import tangible.protocols.TangibleGatewayProtocol;
 
 /**
  *
- * @param <Types> DeviceType that are gathered by this gateway
  * @author leo
  */
-public interface TangibleGateway <Types  extends TangibleDevice> extends Collection<Types> {
-  public TangibleGatewayCommunicationProtocol<Types> getTalk();
-  public String[] getDevicesId();
-  public String getId();
-	//public void disconnect();
+public class GenericTangibleGateway {
+	private TangibleGatewayProtocol _talk;
+
+	
+	
+	public TangibleGatewayProtocol getTalk() {
+		return _talk;
+	}
+	
 }
