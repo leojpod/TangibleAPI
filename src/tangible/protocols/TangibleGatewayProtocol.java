@@ -33,7 +33,6 @@ import utils.Couple;
  * @author leo
  */
 public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
-
 	
 	public static final class UnSupportedMethodException extends ApiException {
 		private static final long serialVersionUID = 1L;
@@ -113,8 +112,10 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 	private List<StreamingThreadReporter> _reporters;
 	
 	
-	public TangibleGatewayProtocol(Socket s, String type, String protocol_version, Capacity[] capacities, TangibleGateway gateway) throws IOException {
+	public TangibleGatewayProtocol(Socket s, String type, String protocol_version,
+			Capacity[] capacities, TangibleGateway gateway) throws IOException {
 		super(s);
+		s.setSoTimeout(0);
 		this.type = type;
 		this.protocol_version = protocol_version;
 		this._capacities = Arrays.asList(capacities);
@@ -123,18 +124,25 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		_readingThread.setStreamOverListener(new Listener<Void>() {
 			@Override
 			public void callback(Void t) {
+				System.out.println("TGP._readingThread is over");
 				_gateway.handleDisconnection();
 			}
 		});
 		_reporters = new ArrayList<StreamingThreadReporter>();
 	}
 	
+	@Override
+	protected void handleDisconnection() {
+		_gateway.handleDisconnection();
+	}
 	public void setScreenSize(int height, int width) {
 		_size = new ScreenSize(height, width);
 	}
 	public void startReading(){
 		//TODO we shoudl add some assert event reporting here and on the _readingThread initialization as well... 
-		_readingThread.start();
+		if (canDo(Capacity.report_events)) {
+			_readingThread.start();
+		}
 	}
 	
 	public Capacity[] getCapacities() {
@@ -160,6 +168,15 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		JsonObject msg = buildCommand(command, params, devIds);
 		this.sendJsonEventMsg(msg);
 	}
+	private void sendControlCommand(String command, JsonObject params) {
+		JsonObject msg = new JsonObject();
+		msg.addProperty("command", command);
+		if (params != null) {
+			msg.add("params", params);
+		}
+		this.sendJsonCtrlMsg(msg);
+	}
+	
 	
 	public void showColor(int r, int g, int b, String[] devs){
 		//TODO: should we check the devIds here to make sure they are all from this gateway? 
@@ -276,6 +293,5 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		this._readingThread.addEventListener(aReporter);
 		this.sendEventCommand("report_all_events", new JsonObject(), devId);
 	}
-	
-	
+      
 }

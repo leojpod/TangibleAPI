@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import managers.DeviceFinder;
 import managers.DeviceFinderAccess;
 import tangible.devices.TangibleDevice;
@@ -25,6 +27,16 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
   @Deprecated
   private DeviceFinder _finder;
   private String _api_protocol_version;
+	private TangibleGateway gateway;
+
+	@Override
+	protected void handleDisconnection() {
+		if (gateway != null) {
+			gateway.handleDisconnection();
+		} else {
+			Logger.getLogger(DeviceAuthenticationProtocol.class.getName()).log(Level.INFO, "There is a problem with the socket that occured during the authentication... ");
+		}
+	}
 
   public static abstract class DeviceFoundCallBack
     implements CallBack<TangibleDevice, Boolean> {
@@ -105,7 +117,7 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
 			capacities[i] = Capacity.valueOf(capacities_str[i]);
 		}
 		//now we have what we need to create a tangible gateway and it's protocol... 
-		TangibleGateway gateway = new TangibleGateway();
+		gateway = new TangibleGateway();
 		TangibleGatewayProtocol gw_protocol = new TangibleGatewayProtocol(_sock, type, _api_protocol_version, capacities, gateway);
 		gateway.attachCommunication(gw_protocol);
 		for(String devId : devIds) {
@@ -115,6 +127,7 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
 			dev.attachDeviceProtocol(dev_talk);
 			cb.callback(dev);
 		}
+		gw_protocol.startReading();
 		System.out.println("Authentication successful!\n\twe know have "+ DeviceFinderAccess.getInstance().getDevices().size()+ " devices connected");
     finalizeAuthentication();
   }

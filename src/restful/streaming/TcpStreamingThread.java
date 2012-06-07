@@ -50,6 +50,11 @@ public class TcpStreamingThread extends AbstractStreamingThread {
 		protected void sendJsonCtrlMsg(JsonElement o) {
 			super.sendJsonCtrlMsg(o);
 		}
+
+		@Override
+		protected void handleDisconnection() {
+			Logger.getLogger(TcpEventStreamingProtocol.class.getName()).log(Level.INFO, "This should handle a proper disconnection!");
+		}
 		
 		
   }

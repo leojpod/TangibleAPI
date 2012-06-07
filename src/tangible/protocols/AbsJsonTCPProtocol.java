@@ -22,14 +22,22 @@ public abstract class AbsJsonTCPProtocol extends AbsTCPProtocol{
     
     protected void sendJSON(Object o){
       System.out.println("sending an object via Gson encoding");
-			gson.toJson(o, this.getOutput());
-      this.getOutput().flush();
+			try{
+				gson.toJson(o, this.getOutput());
+				this.getOutput().flush();
+			} catch (JsonIOException e) {
+				handleDisconnection();
+			}
     }
     protected void sendJSON(JsonElement elm){
       //System.out.println("sending a jsonElement directly");
       System.out.println("the JsonElement looks like that: "+elm.toString());
-      gson.toJson(elm, this.getOutput());
-      this.getOutput().flush();
+			try{
+				gson.toJson(elm, this.getOutput());
+	      this.getOutput().flush();
+			} catch (JsonIOException e){
+				handleDisconnection();
+			}
     }
     
     protected void sendJsonMsg(Object o, boolean isControlFlow){
@@ -71,12 +79,14 @@ public abstract class AbsJsonTCPProtocol extends AbsTCPProtocol{
     }
     
     
-    protected <T> T readJSON(Class c) throws JsonSyntaxException{
-      return (T) gson.fromJson(this.getInput(), c);
+    protected <T> T readJSON(Class<T> c) throws JsonSyntaxException{
+      return gson.fromJson(this.getInput(), c);
     }
     
     protected JsonElement readJSON(){
       JsonParser parser = new JsonParser();
       return parser.parse(reader);
     }
+		
+		protected abstract void handleDisconnection();
 }

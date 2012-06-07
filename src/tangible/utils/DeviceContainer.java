@@ -27,8 +27,16 @@ public class DeviceContainer implements Collection<TangibleDevice>{
 
     @Override
     public boolean hasNext() {
-      return _map_keys_ite.hasNext() 
-          || (_current_set_ite != null && _current_set_ite.hasNext());
+      if (_current_set_ite != null && _current_set_ite.hasNext()) {
+				return true;
+			} else {
+				if (_map_keys_ite.hasNext()) {
+					_current_set_ite = _container.get(_map_keys_ite.next()).iterator();
+					return _current_set_ite.hasNext();
+				} else {
+					return false;
+				}
+			}
       //there is obviously more elements if there are keys unexplored in the Map
       // or if there are elements left to see in the current set (checked only if the set is the last one unexplored)
     }
@@ -182,7 +190,9 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   }
   
   public TangibleDevice getById(String id) throws DeviceNotFoundException{
-    for(Iterator<TangibleDevice> ite = this.iterator(); ite.hasNext();){
+    Iterator<TangibleDevice> ite = this.iterator(); 
+		while(ite.hasNext()){
+			System.out.println("next!");
       TangibleDevice dev = ite.next();
       if(dev.getId().equals(id)){
         //we found it!

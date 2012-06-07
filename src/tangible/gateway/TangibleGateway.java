@@ -30,6 +30,7 @@ public class TangibleGateway implements Collection<TangibleDevice> {
 	}
 	
 	public void handleDisconnection(){
+		System.out.println("disconnecting device(s) ...");
 		DeviceFinder devMgr = DeviceFinderAccess.getInstance();
 		for(TangibleDevice dev : _devices){
 			devMgr.removeDevice(dev);
