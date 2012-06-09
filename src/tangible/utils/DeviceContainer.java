@@ -3,9 +3,9 @@
  */
 package tangible.utils;
 
-import tangible.utils.exceptions.DeviceNotFoundException;
 import java.util.*;
 import tangible.devices.TangibleDevice;
+import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
  *

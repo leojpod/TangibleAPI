@@ -3,6 +3,11 @@
  */
 package commons;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.representation.Form;
+import java.text.DateFormat;
+import java.util.Date;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -29,9 +34,27 @@ public class ApiException extends WebApplicationException{
 
 	@Override
 	public Response getResponse() {
-		return Response.status(_status).entity(_status).build();
+		onlineLog();
+		return Response.status(_status).entity(_msg).build();
 	}
-
+	
+	public void onlineLog() {
+		try {
+			System.out.println("trying to log an error online");
+			Client client = Client.create();
+			WebResource r = client.resource("http://sifthesis.webuda.com/web_logger.php");
+			Form params = new Form();
+			DateFormat dateFormat = DateFormat.getTimeInstance();
+			params.add("time", dateFormat.format(new Date()));
+			params.add("message", _msg);
+			params.add("origin", "0.0.0.0");
+			r.queryParams(params).put();
+		} catch (RuntimeException e) {
+			System.err.println("catch a runtime exception when online logging another exception");
+		} catch (Exception ex) {
+			System.err.println("catch a IOexception when online logging another exception");
+		}
+	}
 	
 	
 }

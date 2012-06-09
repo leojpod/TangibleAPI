@@ -6,7 +6,6 @@ package restful.streaming;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import org.webbitserver.WebSocketConnection;
-import tangible.utils.JsonProtocolHelper;
 import tangible.utils.Listener;
 
 /**
