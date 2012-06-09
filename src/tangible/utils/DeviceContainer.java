@@ -3,9 +3,9 @@
  */
 package tangible.utils;
 
-import tangible.utils.exceptions.DeviceNotFoundException;
 import java.util.*;
 import tangible.devices.TangibleDevice;
+import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
  *
@@ -27,8 +27,16 @@ public class DeviceContainer implements Collection<TangibleDevice>{
 
     @Override
     public boolean hasNext() {
-      return _map_keys_ite.hasNext() 
-          || (_current_set_ite != null && _current_set_ite.hasNext());
+      if (_current_set_ite != null && _current_set_ite.hasNext()) {
+				return true;
+			} else {
+				if (_map_keys_ite.hasNext()) {
+					_current_set_ite = _container.get(_map_keys_ite.next()).iterator();
+					return _current_set_ite.hasNext();
+				} else {
+					return false;
+				}
+			}
       //there is obviously more elements if there are keys unexplored in the Map
       // or if there are elements left to see in the current set (checked only if the set is the last one unexplored)
     }
@@ -93,7 +101,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean contains(Object o) {
     if(o instanceof TangibleDevice){
       TangibleDevice dev = (TangibleDevice) o;
-      return _devices.get(dev.type).contains(o);
+      return _devices.get(dev.getType()).contains(o);
     }else{
       return false;
     }
@@ -117,7 +125,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   @Override
   public boolean add(TangibleDevice e) {
     //the mainly interesting method in this class:
-    String type = e.type;
+    String type = e.getType();
     if(!_devices.containsKey(type)){
       _devices.put(type, new LinkedHashSet<TangibleDevice>());
     }
@@ -128,11 +136,11 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean remove(Object o) {
     if(o instanceof TangibleDevice){
       TangibleDevice dev = (TangibleDevice) o;
-      if(!_devices.containsKey(dev.type)){
+      if(!_devices.containsKey(dev.getType())){
         // no such type of device!
         return false;
       }else{
-        return _devices.get(dev.type).remove(o);
+        return _devices.get(dev.getType()).remove(o);
       }
     }else{
       return false;
@@ -173,7 +181,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public boolean containsId(String id) {
     boolean find = false;
     for(Iterator<TangibleDevice> ite = this.iterator(); !find && ite.hasNext();){
-      if(ite.next().id.equals(id)){
+      if(ite.next().getId().equals(id)){
         //we found it!
         find = true;
       }
@@ -182,9 +190,11 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   }
   
   public TangibleDevice getById(String id) throws DeviceNotFoundException{
-    for(Iterator<TangibleDevice> ite = this.iterator(); ite.hasNext();){
+    Iterator<TangibleDevice> ite = this.iterator(); 
+		while(ite.hasNext()){
+			System.out.println("next!");
       TangibleDevice dev = ite.next();
-      if(dev.id.equals(id)){
+      if(dev.getId().equals(id)){
         //we found it!
         return dev;
       }//else let's go on looking for it

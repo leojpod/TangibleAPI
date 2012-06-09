@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import restful.streaming.AbstractStreamingThread;
 import restful.streaming.StreamingHolder;
 import tangible.devices.TangibleDevice;
-import tangible.protocols.TangibleDeviceCommunicationProtocol;
+import tangible.protocols.TangibleDeviceProtocol;
 import tangible.utils.exceptions.DeviceNotFoundException;
 
 /**
@@ -109,7 +109,7 @@ public enum SubscriptionManagerAccess {
       //find the device, get the talk, add a call back for all event messages
       //NOTE: we assume that the device exists and that the application is associated to it
       TangibleDevice dev = _devMgr.getDevice(device);
-      final TangibleDeviceCommunicationProtocol<? extends TangibleDevice> talk = dev.getTalk();
+      final TangibleDeviceProtocol talk = dev.getTalk();
       synchronized (talk){
 				talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
 			}

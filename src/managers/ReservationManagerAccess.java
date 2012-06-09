@@ -42,11 +42,11 @@ public enum ReservationManagerAccess {
     public synchronized String reserveDeviceById(String device_id, UUID app_id)
         throws UnsuccessfulReservationException {
 			Logger.getLogger(ReservationManagerImpl.class.getName()).log(Level.INFO, "trying to reserve the device: {0}", device_id);
-      if(!isDeviceAvailable(device_id) || app_id == null){
+		  if(!isDeviceAvailable(device_id) || app_id == null){
         throw new UnsuccessfulReservationException();
       }//else the device is available
       TangibleDevice dev = _devFinder.getDevice(device_id);
-      addNewReservation(dev, app_id);
+			addNewReservation(dev, app_id);
       _busyDevices.put(device_id,dev);
       //<FOR DEBUG>
 //      System.out.println("Reservation made!!!");
@@ -79,7 +79,7 @@ public enum ReservationManagerAccess {
 				throw new UnsuccessfulReservationException();
 			}
       for(TangibleDevice dev : _reservations.get(app_id)){
-        devIds.add(dev.id);
+        devIds.add(dev.getId());
       }
       return devIds;
     }
@@ -98,7 +98,7 @@ public enum ReservationManagerAccess {
       //otherwise let's remove that from both the busy list and the reservation map!
       _reservations.get(app_id).remove(_busyDevices.remove(device_id));
       //<FOR DEBUG>
-//      System.out.println("Reservation deleted!");
+     System.out.println("Reservation deleted!");
       _devFinder.getDevice(device_id).getTalk().showColor(0xDA0000);
     }
 
