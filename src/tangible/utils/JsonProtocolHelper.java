@@ -4,6 +4,10 @@
 package tangible.utils;
 
 import com.google.gson.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import tangible.utils.exceptions.WrongProtocolJsonSyntaxException;
@@ -151,5 +155,17 @@ public class JsonProtocolHelper {
     obj.addProperty("flow", flow);
     obj.add("msg", msg);
     return obj;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T[] assertArrayOfOneKind(JsonArray jsonArray, Class<T> tClass) {
+		T[] t_array = null;
+		Iterator<JsonElement> ite = jsonArray.iterator();
+		List<T> t_list = new ArrayList<T>();
+		while(ite.hasNext()){
+			JsonElement elm = ite.next();
+			t_list.add(assertType(elm, tClass));
+		}
+		return t_list.toArray((T[])Array.newInstance(tClass, 0));
 	}
 }

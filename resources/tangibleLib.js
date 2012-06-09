@@ -324,7 +324,7 @@ function SubscriptionMgr() {
 			listenerDict[devId][eventType] = [];
 		}
 		listenerDict[devId][eventType].push(onEvent);
-//		console.log('SubscriptionMgr.addListener completed');
+		console.log('SubscriptionMgr.addListener completed: ' + eventType);
 	};
 
 	this.close = function () {

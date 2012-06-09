@@ -1,58 +1,47 @@
+/*
+ * Master-Thesis work: see https://sites.google.com/site/sifthesis/
+ */
 package tangible.devices;
 
 import com.google.gson.annotations.SerializedName;
-import java.net.Socket;
-import tangible.protocols.TangibleDeviceCommunicationProtocol;
+import tangible.gateway.TangibleGateway;
+import tangible.protocols.TangibleDeviceProtocol;
 
 /**
- * provides the basic information about any kind of supported device
  *
  * @author leo
  */
-public abstract class TangibleDevice {
-
-  public String type;
+public class TangibleDevice {
+	private transient TangibleGateway _gateway;
+	
+	private transient TangibleDeviceProtocol _talk;
+	private final String id;
+	private final String type;
   @SerializedName("protocolVersion")
-  public String protocol_version;
-  public String id;
+  public final String protocol_version;
 
-  public TangibleDevice() {
-    type = null;
-    protocol_version = null;
-    id = null;
-  }
-
-  public TangibleDevice(String type, String protocol_version, String id) {
-    this.type = type;
-    this.protocol_version = protocol_version;
-    this.id = id;
-  }
-
-//    protected transient Socket _s;
-  //private transient TangibleDeviceCommunicationProtocol _talk;
-//    public void attachSocket(Socket sock){
-//      _s = sock;
-//      //_talk = createTangiebleDeviceProtocol(_s);
-//    }
-  //protected abstract TangibleDeviceCommunicationProtocol createTangiebleDeviceProtocol(Socket sock);
-//    public boolean isConnected(){
-//      return _s != null && _s.isConnected();
-//    }
-  public String getHashCode() {
-    return type + '.' + id;
-  }
-
-  @Deprecated
-  public abstract void attachSocket(Socket s);
-
-  public abstract TangibleDeviceCommunicationProtocol<? extends TangibleDevice> getTalk();
-
-  public abstract boolean isConnected();
-
-  /**
-   *
-   * @param <T> Type of the final device
-   * @param talk
-   */
-  public abstract <T extends TangibleDevice> void attachCommunication(TangibleDeviceCommunicationProtocol<T> talk);
+	public TangibleDevice(TangibleGateway gateway, String devId) {
+		this._gateway = gateway;
+		id = devId;
+		type = _gateway.getType();
+		protocol_version = _gateway.getTalk().protocol_version;
+	}
+	
+	public TangibleGateway getGateway() {
+		return _gateway;
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void attachDeviceProtocol(TangibleDeviceProtocol talk){
+		_talk = talk;
+	}
+	public TangibleDeviceProtocol getTalk(){
+		return _talk;
+	}
+	public String getType() {
+		return type;
+	}
 }

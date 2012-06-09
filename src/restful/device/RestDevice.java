@@ -3,6 +3,7 @@
  */
 package restful.device;
 
+import commons.ApiException;
 import java.util.List;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
