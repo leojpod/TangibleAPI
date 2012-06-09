@@ -3,3 +3,7 @@
 /nbproject/private/
 nbproject/private/private.properties
 .DS_Store
+nbproject/*
+nbproject/project.properties
+
+nbproject/project.properties
