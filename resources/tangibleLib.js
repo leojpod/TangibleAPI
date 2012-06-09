@@ -271,7 +271,7 @@ function SubscriptionMgr() {
 	var wsStream, listenerDict = [];
 
 	function filterEvents(rcvEvt) {
-//		console.log('about to filter:' + rcvEvt.data);
+		console.log('about to filter:' + rcvEvt.data);
 		var jsonMsg = $.parseJSON(rcvEvt.data), devId, eventType, params, idx;
 		if (jsonMsg.flow !== 'event') {
 //			console.log("we recevied a non-event message, and ignored it");
