@@ -30,7 +30,7 @@ function add_log($time, $origin, $message) {
 		mkdir('./logs');
 	}
 	$current_log = fopen("./logs/logs-".$date_str, 'a');
-	$entry = '['.$time.']<!>'.$origin.'<!>'.$message;
+	$entry = '['.$time.']<!>'.$origin.'<!>'.$message.'\r\n';
 	fwrite($current_log, $entry);
 	fclose($current_log);
 }

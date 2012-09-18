@@ -291,7 +291,7 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		StreamingThreadReporter aReporter = new StreamingThreadReporter(sTh, devId);
 		this._reporters.add(aReporter);
 		this._readingThread.addEventListener(aReporter);
-		this.sendEventCommand("report_all_events", new JsonObject(), devId);
+		this.sendJsonCtrlMsg(this.buildCommand("report_all_events", new JsonObject(), devId));
 	}
       
 }

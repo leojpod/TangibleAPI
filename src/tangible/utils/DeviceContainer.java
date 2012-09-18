@@ -192,7 +192,7 @@ public class DeviceContainer implements Collection<TangibleDevice>{
   public TangibleDevice getById(String id) throws DeviceNotFoundException{
     Iterator<TangibleDevice> ite = this.iterator(); 
 		while(ite.hasNext()){
-			System.out.println("next!");
+			//System.out.println("next!");
       TangibleDevice dev = ite.next();
       if(dev.getId().equals(id)){
         //we found it!

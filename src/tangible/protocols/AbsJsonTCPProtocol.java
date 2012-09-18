@@ -20,8 +20,8 @@ public abstract class AbsJsonTCPProtocol extends AbsTCPProtocol{
         reader = new JsonReader(this.getInput());
     }
     
-    protected void sendJSON(Object o){
-      System.out.println("sending an object via Gson encoding");
+    protected synchronized void sendJSON(Object o){
+//      System.out.println("sending an object via Gson encoding");
 			try{
 				gson.toJson(o, this.getOutput());
 				this.getOutput().flush();
@@ -29,9 +29,9 @@ public abstract class AbsJsonTCPProtocol extends AbsTCPProtocol{
 				handleDisconnection();
 			}
     }
-    protected void sendJSON(JsonElement elm){
+    protected synchronized void sendJSON(JsonElement elm){
       //System.out.println("sending a jsonElement directly");
-      System.out.println("the JsonElement looks like that: "+elm.toString());
+//      System.out.println("the JsonElement looks like that: "+elm.toString());
 			try{
 				gson.toJson(elm, this.getOutput());
 	      this.getOutput().flush();

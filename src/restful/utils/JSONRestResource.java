@@ -61,7 +61,8 @@ public class JSONRestResource {
     "http://satin.codemill.se",  
     "http://satin.codemill.se/", 
     "http://satin.codemill.se:81",  
-    "http://satin.codemill.se:81/" };
+    "http://satin.codemill.se:81/",
+		"http://cdn.satin.codemill.se"};
 
   protected String assertOrigin(String origin){
     String currentOrigin = null;

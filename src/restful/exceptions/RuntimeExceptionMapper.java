@@ -6,6 +6,7 @@ package restful.exceptions;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.representation.Form;
+import java.net.InetAddress;
 import java.text.DateFormat;
 import java.util.Date;
 import javax.ws.rs.core.Response;
@@ -38,15 +39,16 @@ public class RuntimeExceptionMapper implements ExceptionMapper<RuntimeException>
 				message += stack[i].toString()+ "<br/>";
 			}
 			params.add("message", message);
-			params.add("origin", "0.0.0.0");
+			String ipAddress = InetAddress.getLocalHost().getHostAddress();
+			params.add("origin", ipAddress);
 			
 			String resp = r.put(String.class, params);
-			System.out.println(resp);
+			//System.out.println(resp);
 		} catch (RuntimeException ex) {
-			System.err.println("catch a runtime exception when online logging another exception");
-			System.out.println(ex.getLocalizedMessage());
+			//System.err.println("catch a runtime exception when online logging another exception");
+			//System.out.println(ex.getLocalizedMessage());
 		} catch (Exception ex) {
-			System.err.println("catch a IOexception when online logging another exception");
+			//System.err.println("catch a IOexception when online logging another exception");
 		}
 	}
 }

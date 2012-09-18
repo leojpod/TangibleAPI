@@ -116,9 +116,22 @@ public class DeviceAuthenticationProtocol extends AbsJsonTCPProtocol {
 		for(int i = 0; i < capacities_str.length; i ++) {
 			capacities[i] = Capacity.valueOf(capacities_str[i]);
 		}
+		int width = -1, height = -1;
+		boolean screenSize_available = false;
+		try {
+			JsonArray screenSize_json = JsonProtocolHelper.assertArrayInObject(content, "screenSize");
+			width = JsonProtocolHelper.assertInt(screenSize_json.get(0));
+			height = JsonProtocolHelper.assertInt(screenSize_json.get(1));
+			screenSize_available = true;
+		} catch (WrongProtocolJsonSyntaxException e) {
+			//no screen size for this protocol...
+		}
 		//now we have what we need to create a tangible gateway and it's protocol... 
 		gateway = new TangibleGateway();
 		TangibleGatewayProtocol gw_protocol = new TangibleGatewayProtocol(_sock, type, _api_protocol_version, capacities, gateway);
+		if(screenSize_available) {
+			gw_protocol.setScreenSize(height, width);
+		}
 		gateway.attachCommunication(gw_protocol);
 		for(String devId : devIds) {
 			TangibleDevice dev = new TangibleDevice(gateway, devId);
