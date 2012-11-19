@@ -33,6 +33,8 @@ import utils.Couple;
  * @author leo
  */
 public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
+
+	
 	
 	public static final class UnSupportedMethodException extends ApiException {
 		private static final long serialVersionUID = 1L;
@@ -80,6 +82,18 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		public void addDevices(String[] devIds) {
 			for (String id : devIds) {
 				this.addDevice(id);
+			}
+		}
+		
+		public boolean coverFor(AbstractStreamingThread th, String[] devIds) {
+			if (th.equals(_th)){
+				boolean cover = true;
+				for(int i = 0; cover && i < devIds.length; i++) {
+					cover = _followedDevices.contains(devIds[i]);
+				}
+				return cover;
+			} else {
+				return false;
 			}
 		}
 
@@ -292,6 +306,15 @@ public class TangibleGatewayProtocol extends AbsJsonTCPProtocol{
 		this._reporters.add(aReporter);
 		this._readingThread.addEventListener(aReporter);
 		this.sendJsonCtrlMsg(this.buildCommand("report_all_events", new JsonObject(), devId));
+	}
+	
+	public boolean isReportingAllEvents(AbstractStreamingThread sTh, String[] devId) {
+		for (StreamingThreadReporter reporter : _reporters) {
+			if (reporter.coverFor(sTh, devId)) {
+				return true;
+			}
+		}
+		return false;
 	}
       
 }

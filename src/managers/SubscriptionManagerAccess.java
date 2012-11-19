@@ -111,7 +111,9 @@ public enum SubscriptionManagerAccess {
       TangibleDevice dev = _devMgr.getDevice(device);
       final TangibleDeviceProtocol talk = dev.getTalk();
       synchronized (talk){
-				talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
+				if (!talk.isReportingAllEvents(_streams.getStreamingSocket(appuuid))) {
+					talk.addAllEventsNotification(_streams.getStreamingSocket(appuuid));
+				}
 			}
     }
 

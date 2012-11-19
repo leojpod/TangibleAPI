@@ -7,11 +7,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import commons.ApiException;
+import java.io.FileNotFoundException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import utils.LineReader;
 
 /**
  *
@@ -55,14 +57,33 @@ public class JSONRestResource {
    */
   //protected String corsHeaders;
   //protected String currentOrigin;
-  protected final String[] allowedOrigins = {
-    "http://localhost", 
-    "http://localhost/", 
-    "http://satin.codemill.se",  
-    "http://satin.codemill.se/", 
-    "http://satin.codemill.se:81",  
-    "http://satin.codemill.se:81/",
-		"http://cdn.satin.codemill.se"};
+  protected static String[] allowedOrigins = null;
+
+	public JSONRestResource() {
+		if (allowedOrigins == null) {
+			try {
+				allowedOrigins = LineReader.readFile("allowedOrigins.cfg");
+			} catch (FileNotFoundException e) {
+				try {
+					allowedOrigins = LineReader.readFile("resources/allowedOrigins.cfg");
+				} catch (FileNotFoundException ex) {
+					System.out.println("No allowedOrigins file provided!");
+					System.out.println(ex.getMessage());
+					allowedOrigins = new String[] {
+						"http://localhost", 
+						"http://localhost/", 
+						"http://satin.codemill.se",  
+						"http://satin.codemill.se/", 
+						"http://satin.codemill.se:81", 
+						"http://cdn.satin2.codemill.se",
+						"http://satin.codemill.se:81/",
+						"http://cdn.satin.codemill.se"};
+				}
+			}
+		}
+	}
+	
+	
 
   protected String assertOrigin(String origin){
     String currentOrigin = null;

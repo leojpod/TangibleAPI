@@ -41,6 +41,9 @@ public class TangibleDeviceProtocol{
   public void addAllEventsNotification(AbstractStreamingThread sTh){
 		_talk.startAllEventReporting(sTh, getDevId());
 	}
+	public boolean isReportingAllEvents(AbstractStreamingThread sTh) {
+		return _talk.isReportingAllEvents(sTh, getDevId());
+	}
 	public void showText(String msg){
 		_talk.showText(msg, getDevId());
 	}

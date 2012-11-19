@@ -388,6 +388,7 @@ var tangibleComponent = function () {
 		return {//public part
 		  init : function (server_ip) {
 				initComponent(server_ip);
+				this.init = function () {};
 			},
 			useDevice : function (label, onUsable, onError, deviceProperties, async) {
 //				console.log("the device " + label + " is required...");
@@ -496,3 +497,26 @@ function onErrorMaker(msg) {
 		console.log(msg + data.msg);
 	};
 }
+
+
+var singleton = function () {
+	"use strict";
+	var instance = (function () {
+		//private part
+		var privatevar;
+
+		function privatestuff() {
+			
+		}
+		return {//public part
+		  publicstuff: function () {
+				
+			}
+		};
+	}());
+
+	singleton = function () {
+		return instance;
+	};
+	return singleton();
+};
